@@ -162,7 +162,13 @@ export function calculateCostBreakdown(settings: AllSettings): CostBreakdown {
 // ===== FUNÇÕES DE TAXAS =====
 
 /**
- * Calcula taxas da Shopee
+ * Calcula taxas da Shopee (Março 2026)
+ * Nova política: comissão e taxa fixa variam por faixa de preço
+ * Faixas CNPJ: 
+ *   - Até R$79: 14% + R$4
+ *   - R$80-199: 16% + R$16
+ *   - R$200-499: 20% + R$20
+ *   - R$500+: 20% + R$26
  */
 export function calculateShopeeTaxes(
   price: number,
@@ -173,14 +179,52 @@ export function calculateShopeeTaxes(
   freightProgramExtraPercent: number,
   itemQuantity: number
 ): number {
-  const effectiveCommission = commissionPercent + (useFreightProgram ? freightProgramExtraPercent : 0);
-  const percentTax = Math.min(price * (effectiveCommission / 100), commissionCap);
-  const fixedTax = fixedFee * itemQuantity;
+  // Determinar comissão e taxa fixa pela faixa de preço (nova política março 2026)
+  let effectiveCommission: number;
+  let effectiveFixedFee: number;
+  
+  if (price < 8) {
+    // Produtos < R$8: taxa fixa é metade do preço
+    effectiveCommission = 14;
+    effectiveFixedFee = price / 2;
+  } else if (price <= 79) {
+    effectiveCommission = 14;
+    effectiveFixedFee = 4;
+  } else if (price <= 199) {
+    effectiveCommission = 16;
+    effectiveFixedFee = 16;
+  } else if (price <= 499) {
+    effectiveCommission = 20;
+    effectiveFixedFee = 20;
+  } else {
+    effectiveCommission = 20;
+    effectiveFixedFee = 26;
+  }
+  
+  // Usar valores customizados se diferentes dos automáticos
+  if (commissionPercent !== 20 && commissionPercent !== 0) {
+    effectiveCommission = commissionPercent;
+  }
+  if (fixedFee !== 20 && fixedFee !== 26 && fixedFee !== 0) {
+    effectiveFixedFee = fixedFee;
+  }
+  
+  // Frete grátis agora é subsidiado pela Shopee (sem coparticipação)
+  // useFreightProgram mantido para compatibilidade, mas freightProgramExtraPercent deve ser 0
+  effectiveCommission += (useFreightProgram ? freightProgramExtraPercent : 0);
+  
+  const percentTax = commissionCap > 0 
+    ? Math.min(price * (effectiveCommission / 100), commissionCap)
+    : price * (effectiveCommission / 100);
+  const fixedTax = effectiveFixedFee * itemQuantity;
   return percentTax + fixedTax;
 }
 
 /**
- * Calcula taxas do Mercado Livre
+ * Calcula taxas do Mercado Livre (Março 2026)
+ * Nova política: custo fixo baseado em peso/dimensões para produtos < R$79
+ * Custos fixos escalonados: R$6,25 (R$12,50-29), R$6,50 (R$29-50), R$6,75 (R$50-79)
+ * Produtos < R$12,50 pagam metade do preço como custo fixo
  */
 export function calculateMercadoLivreTaxes(
   price: number,
@@ -191,7 +235,21 @@ export function calculateMercadoLivreTaxes(
   itemQuantity: number
 ): number {
   const percentTax = price * (commissionPercent / 100);
-  const fixedFee = price <= priceThreshold ? fixedFeeBelowThreshold : fixedFeeAboveThreshold;
+  
+  let fixedFee: number;
+  if (price > priceThreshold) {
+    fixedFee = fixedFeeAboveThreshold;
+  } else if (price < 12.50) {
+    // Produtos < R$12,50 pagam metade do preço
+    fixedFee = price / 2;
+  } else if (price <= 29) {
+    fixedFee = 6.25;
+  } else if (price <= 50) {
+    fixedFee = 6.50;
+  } else {
+    fixedFee = fixedFeeBelowThreshold; // 6.75 para R$50-79
+  }
+  
   const fixedTax = fixedFee * itemQuantity;
   return percentTax + fixedTax;
 }

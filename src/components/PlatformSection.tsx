@@ -49,24 +49,28 @@ export const PlatformSection: React.FC<PlatformSectionProps> = ({
       
       {/* Shopee */}
       <div className="subsection platform-shopee">
-        <h3>🟠 Shopee</h3>
+        <h3>🟠 Shopee (Março 2026)</h3>
+        
+        <div className="info-box">
+          ⚠️ Nova política: comissão variável por faixa de preço. Frete grátis agora subsidiado pela Shopee (sem coparticipação).
+        </div>
         
         <div className="form-group">
-          <label>Tipo de Conta</label>
+          <label>Faixa de Preço do Produto</label>
           <div className="toggle-buttons">
             <button
               type="button"
               className={settings.shopee.accountType === 'padrao' ? 'active' : ''}
               onClick={() => handleShopeeAccountChange('padrao')}
             >
-              Padrão
+              R$200-499
             </button>
             <button
               type="button"
               className={settings.shopee.accountType === 'volume' ? 'active' : ''}
               onClick={() => handleShopeeAccountChange('volume')}
             >
-              Volume
+              R$500+
             </button>
           </div>
         </div>
@@ -118,40 +122,15 @@ export const PlatformSection: React.FC<PlatformSectionProps> = ({
             onChange={(e) => onUpdateShopee({ commissionCap: Math.max(0, Number(e.target.value)) })}
           />
         </div>
-
-        <div className="form-group checkbox-group">
-          <label>
-            <input
-              type="checkbox"
-              checked={settings.shopee.useFreightProgram}
-              onChange={(e) => onUpdateShopee({ useFreightProgram: e.target.checked })}
-            />
-            <span>Programa Frete Grátis (+{settings.shopee.freightProgramExtraPercent}%)</span>
-            <span className="tooltip" title="Adiciona taxa extra para programa de frete grátis">ⓘ</span>
-          </label>
-        </div>
-
-        {settings.shopee.useFreightProgram && (
-          <div className="form-group">
-            <label htmlFor="shopeeFreightExtra">
-              Extra Frete Grátis (%)
-            </label>
-            <input
-              id="shopeeFreightExtra"
-              type="number"
-              min="0"
-              max="100"
-              step="0.1"
-              value={settings.shopee.freightProgramExtraPercent}
-              onChange={(e) => onUpdateShopee({ freightProgramExtraPercent: Math.max(0, Number(e.target.value)) })}
-            />
-          </div>
-        )}
       </div>
 
       {/* Mercado Livre */}
       <div className="subsection platform-ml">
-        <h3>🔵 Mercado Livre</h3>
+        <h3>🔵 Mercado Livre (Março 2026)</h3>
+        
+        <div className="info-box">
+          ⚠️ Nova política: custo operacional baseado em peso/dimensões para produtos &lt; R$79.
+        </div>
         
         <div className="form-group">
           <label>Tipo de Anúncio</label>

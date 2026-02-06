@@ -69,47 +69,78 @@ describe('Cálculos de Depreciação', () => {
   });
 });
 
-describe('Cálculos de Taxas - Shopee', () => {
-  it('calcula taxas básicas da Shopee', () => {
-    // Preço R$100, comissão 14%, taxa fixa R$4, sem frete grátis
-    // 14% de 100 = R$14 + R$4 = R$18
-    expect(calculateShopeeTaxes(100, 14, 4, 100, false, 6, 1)).toBeCloseTo(18, 2);
+describe('Cálculos de Taxas - Shopee (Março 2026)', () => {
+  it('calcula taxas para faixa R$80-199', () => {
+    // Preço R$100 (faixa R$80-199): 16% + R$16
+    // 16% de 100 = R$16 + R$16 = R$32
+    expect(calculateShopeeTaxes(100, 20, 20, 0, false, 0, 1)).toBeCloseTo(32, 2);
   });
 
-  it('aplica programa de frete grátis', () => {
-    // Preço R$100, comissão 14% + 6% = 20%, taxa fixa R$4
-    // 20% de 100 = R$20 + R$4 = R$24
-    expect(calculateShopeeTaxes(100, 14, 4, 100, true, 6, 1)).toBeCloseTo(24, 2);
+  it('calcula taxas para faixa até R$79', () => {
+    // Preço R$50 (faixa até R$79): 14% + R$4
+    // 14% de 50 = R$7 + R$4 = R$11
+    expect(calculateShopeeTaxes(50, 20, 20, 0, false, 0, 1)).toBeCloseTo(11, 2);
   });
 
-  it('aplica teto de comissão', () => {
-    // Preço R$1000, comissão 14% = R$140, mas teto é R$100
-    // R$100 + R$4 = R$104
-    expect(calculateShopeeTaxes(1000, 14, 4, 100, false, 6, 1)).toBeCloseTo(104, 2);
+  it('calcula taxas para faixa R$200-499', () => {
+    // Preço R$300 (faixa R$200-499): 20% + R$20
+    // 20% de 300 = R$60 + R$20 = R$80
+    expect(calculateShopeeTaxes(300, 20, 20, 0, false, 0, 1)).toBeCloseTo(80, 2);
+  });
+
+  it('calcula taxas para faixa R$500+', () => {
+    // Preço R$600 (faixa R$500+): 20% + R$26
+    // 20% de 600 = R$120 + R$26 = R$146
+    expect(calculateShopeeTaxes(600, 20, 26, 0, false, 0, 1)).toBeCloseTo(146, 2);
   });
 
   it('multiplica taxa fixa por quantidade', () => {
-    // Preço R$100, taxa fixa R$4 x 3 itens = R$12
-    expect(calculateShopeeTaxes(100, 14, 4, 100, false, 6, 3)).toBeCloseTo(26, 2);
+    // Preço R$300 (faixa R$200-499), 3 itens
+    // 20% de 300 = R$60 + R$20*3 = R$60 + R$60 = R$120
+    expect(calculateShopeeTaxes(300, 20, 20, 0, false, 0, 3)).toBeCloseTo(120, 2);
   });
 });
 
-describe('Cálculos de Taxas - Mercado Livre', () => {
-  it('calcula taxas abaixo do threshold', () => {
-    // Preço R$50 (abaixo de R$79), comissão 14%, taxa fixa R$6.75
-    // 14% de 50 = R$7 + R$6.75 = R$13.75
-    expect(calculateMercadoLivreTaxes(50, 14, 79, 6.75, 0, 1)).toBeCloseTo(13.75, 2);
+describe('Cálculos de Taxas - Mercado Livre (Março 2026)', () => {
+  it('calcula taxas para R$50-79', () => {
+    // Preço R$60 (faixa R$50-79), comissão 14%, taxa fixa R$6.75
+    // 14% de 60 = R$8.40 + R$6.75 = R$15.15
+    expect(calculateMercadoLivreTaxes(60, 14, 79, 6.75, 0, 1)).toBeCloseTo(15.15, 2);
   });
 
-  it('calcula taxas acima do threshold', () => {
-    // Preço R$100 (acima de R$79), comissão 14%, taxa fixa R$0
+  it('calcula taxas para R$29-50', () => {
+    // Preço R$40 (faixa R$29-50), comissão 14%, taxa fixa R$6.50
+    // 14% de 40 = R$5.60 + R$6.50 = R$12.10
+    expect(calculateMercadoLivreTaxes(40, 14, 79, 6.75, 0, 1)).toBeCloseTo(12.10, 2);
+  });
+
+  it('calcula taxas para R$12.50-29', () => {
+    // Preço R$20 (faixa R$12.50-29), comissão 14%, taxa fixa R$6.25
+    // 14% de 20 = R$2.80 + R$6.25 = R$9.05
+    expect(calculateMercadoLivreTaxes(20, 14, 79, 6.75, 0, 1)).toBeCloseTo(9.05, 2);
+  });
+
+  it('calcula taxas para produtos abaixo de R$12.50', () => {
+    // Preço R$10 (< R$12.50): taxa fixa = metade do preço = R$5
+    // 14% de 10 = R$1.40 + R$5 = R$6.40
+    expect(calculateMercadoLivreTaxes(10, 14, 79, 6.75, 0, 1)).toBeCloseTo(6.40, 2);
+  });
+
+  it('calcula taxas acima de R$79', () => {
+    // Preço R$100 (acima de R$79), comissão 14%, sem taxa fixa escalonada
     // 14% de 100 = R$14
     expect(calculateMercadoLivreTaxes(100, 14, 79, 6.75, 0, 1)).toBeCloseTo(14, 2);
   });
 
   it('aplica comissão premium', () => {
-    // Preço R$100, comissão 17%
-    expect(calculateMercadoLivreTaxes(100, 17, 79, 6.75, 0, 1)).toBeCloseTo(17, 2);
+    // Preço R$100, comissão 19% (Premium março 2026)
+    expect(calculateMercadoLivreTaxes(100, 19, 79, 6.75, 0, 1)).toBeCloseTo(19, 2);
+  });
+
+  it('multiplica taxa fixa por quantidade', () => {
+    // Preço R$60 (faixa R$50-79), taxa fixa R$6.75, 2 itens
+    // 14% de 60 = R$8.40 + R$6.75*2 = R$8.40 + R$13.50 = R$21.90
+    expect(calculateMercadoLivreTaxes(60, 14, 79, 6.75, 0, 2)).toBeCloseTo(21.90, 2);
   });
 });
 
