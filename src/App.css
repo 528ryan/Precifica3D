@@ -561,6 +561,252 @@ input::placeholder {
   opacity: 0.7;
 }
 
+/* ===== Products & Kits ===== */
+.btn {
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.btn-secondary {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #475569;
+}
+
+.btn-danger {
+  background: var(--danger-color);
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.btn-small {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.save-product-form,
+.kit-form {
+  margin-top: 1rem;
+}
+
+.save-product-form .cost-preview {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.products-list,
+.kits-list {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.product-item,
+.kit-item {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.product-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.product-info,
+.kit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.product-name,
+.kit-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.product-details,
+.kit-details {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.product-actions,
+.kit-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.empty-message {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 1rem;
+  font-style: italic;
+}
+
+/* Kit specific styles */
+.kit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.expand-icon {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-right: 0.5rem;
+}
+
+.kit-expanded {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.kit-products ul {
+  margin: 0.5rem 0 1rem 1.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.kit-products li {
+  margin-bottom: 0.25rem;
+}
+
+.item-cost {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.kit-pricing {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.platform-pricing {
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.platform-pricing.shopee {
+  background: rgba(238, 77, 45, 0.1);
+  border: 1px solid rgba(238, 77, 45, 0.3);
+}
+
+.platform-pricing.ml {
+  background: rgba(52, 131, 250, 0.1);
+  border: 1px solid rgba(52, 131, 250, 0.3);
+}
+
+.platform-pricing strong {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.platform-pricing p {
+  margin: 0.25rem 0;
+  color: var(--text-secondary);
+}
+
+.platform-pricing .range {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.product-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.selectable-product {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-sm);
+}
+
+.selectable-product .product-name {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.selectable-product .product-cost {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quantity-controls .quantity {
+  min-width: 20px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.kit-summary {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.kit-summary .kit-items-count {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
 /* ===== Mobile First Improvements ===== */
 @media (max-width: 480px) {
   .header h1 {
@@ -589,4 +835,9 @@ input::placeholder {
   .bandeira-options {
     flex-direction: column;
   }
+
+  .kit-pricing {
+    grid-template-columns: 1fr;
+  }
 }
+

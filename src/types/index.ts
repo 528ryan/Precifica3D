@@ -1,5 +1,27 @@
 // ===== TIPOS PRINCIPAIS =====
 
+export interface SavedProduct {
+  id: string;
+  name: string;
+  print: PrintSettings;
+  material: MaterialSettings;
+  extraCosts: ExtraCostsSettings;
+  cogs: number;
+  createdAt: number;
+}
+
+export interface KitItem {
+  productId: string;
+  quantity: number;
+}
+
+export interface Kit {
+  id: string;
+  name: string;
+  items: KitItem[];
+  createdAt: number;
+}
+
 export interface PrinterPreset {
   id: string;
   name: string;

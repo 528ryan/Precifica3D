@@ -5,3 +5,5 @@ export { ExtraCostsSection } from './ExtraCostsSection';
 export { PlatformSection } from './PlatformSection';
 export { PricingGoalsSection } from './PricingGoalsSection';
 export { ResultsSection } from './ResultsSection';
+export { ProductPresetsSection } from './ProductPresetsSection';
+export { KitSection } from './KitSection';

@@ -1,6 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useSettings } from './hooks/useSettings';
+import { useProducts } from './hooks/useProducts';
 import { calculateAllResults } from './calc';
+import type { SavedProduct } from './types';
 import {
   PrintSection,
   MaterialSection,
@@ -9,12 +11,15 @@ import {
   PlatformSection,
   PricingGoalsSection,
   ResultsSection,
+  ProductPresetsSection,
+  KitSection,
 } from './components';
 import './App.css';
 
 function App() {
   const {
     settings,
+    setSettings,
     updatePrint,
     updateMaterial,
     updateEnergy,
@@ -26,6 +31,15 @@ function App() {
     resetSettings,
   } = useSettings();
 
+  const {
+    products,
+    kits,
+    saveProduct,
+    deleteProduct,
+    saveKit,
+    deleteKit,
+  } = useProducts();
+
   const results = useMemo(() => {
     return calculateAllResults(settings);
   }, [settings]);
@@ -33,6 +47,15 @@ function App() {
   const isValid =
     (settings.print.printTimeHours > 0 || settings.print.printTimeMinutes > 0) &&
     settings.material.gramsUsed > 0;
+
+  const handleLoadProduct = useCallback((product: SavedProduct) => {
+    setSettings((prev) => ({
+      ...prev,
+      print: { ...product.print },
+      material: { ...product.material },
+      extraCosts: { ...product.extraCosts },
+    }));
+  }, [setSettings]);
 
   return (
     <div className="app">
@@ -77,6 +100,24 @@ function App() {
           <PricingGoalsSection
             settings={settings.pricingGoals}
             onUpdate={updatePricingGoals}
+          />
+
+          <ProductPresetsSection
+            products={products}
+            currentSettings={settings}
+            currentCogs={results.costs.cogs}
+            onSaveProduct={saveProduct}
+            onDeleteProduct={deleteProduct}
+            onLoadProduct={handleLoadProduct}
+          />
+
+          <KitSection
+            products={products}
+            kits={kits}
+            onSaveKit={saveKit}
+            onDeleteKit={deleteKit}
+            platformSettings={settings.platform}
+            pricingGoals={settings.pricingGoals}
           />
         </div>
 
