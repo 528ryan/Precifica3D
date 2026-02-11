@@ -28,31 +28,6 @@ export const PlatformSection: React.FC<PlatformSectionProps> = ({
     settings.shopee.orderVolume
   );
 
-  // Calcular breakdown de taxas (para visualização)
-  const calculateTaxBreakdown = (price: number) => {
-    const totalPercent =
-      settings.shopee.commissionBasePercent +
-      settings.shopee.transactionTaxPercent +
-      (settings.shopee.useFreightProgram ? settings.shopee.freightProgramPercent : 0);
-
-    let commissionValue = (price * totalPercent) / 100;
-    if (commissionValue > settings.shopee.commissionPercentCap) {
-      commissionValue = settings.shopee.commissionPercentCap;
-    }
-
-    const fixedFeeTotal = settings.shopee.fixedFeePerItem;
-    const totalTaxes = commissionValue + fixedFeeTotal;
-    const netIncome = price - totalTaxes;
-
-    return {
-      totalPercent,
-      commissionValue: parseFloat(commissionValue.toFixed(2)),
-      fixedFeeTotal,
-      totalTaxes: parseFloat(totalTaxes.toFixed(2)),
-      netIncome: parseFloat(netIncome.toFixed(2)),
-    };
-  };
-
   return (
     <div className="card">
       <h2>🛒 Plataformas</h2>
@@ -194,6 +169,11 @@ export const PlatformSection: React.FC<PlatformSectionProps> = ({
           <label htmlFor="shopeeCap">
             Teto Comissão % (R$)
             <span className="tooltip" title="Máximo da parte percentual, padrão R$100">ⓘ</span>
+          </label>
+          <input
+            id="shopeeCap"
+            type="number"
+            min="0"
             step="1"
             value={settings.shopee.commissionPercentCap}
             onChange={(e) => onUpdateShopee({ commissionPercentCap: Math.max(0, Number(e.target.value)) })}
