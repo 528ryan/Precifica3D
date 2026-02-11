@@ -15,11 +15,9 @@ export const PlatformSection: React.FC<PlatformSectionProps> = ({
   onUpdateShopee,
   onUpdateMercadoLivre,
 }) => {
-  const handleShopeeAccountChange = (accountType: 'padrao' | 'volume') => {
-    const fixedFee = accountType === 'padrao' 
-      ? defaultShopeeSettings.fixedFeePadrao 
-      : defaultShopeeSettings.fixedFeeVolume;
-    onUpdateShopee({ accountType, fixedFee });
+  const handleSellerTypeChange = (sellerType: 'cpf_low_volume' | 'cnpj') => {
+    const fixedFeePerItem = sellerType === 'cpf_low_volume' ? 7 : 4;
+    onUpdateShopee({ sellerType, fixedFeePerItem });
   };
 
   const handleMLAdTypeChange = (adType: 'classico' | 'premium') => {
@@ -49,77 +47,108 @@ export const PlatformSection: React.FC<PlatformSectionProps> = ({
       
       {/* Shopee */}
       <div className="subsection platform-shopee">
-        <h3>🟠 Shopee (Março 2026)</h3>
+        <h3>🟠 Shopee (Fevereiro 2026)</h3>
         
         <div className="info-box">
-          ⚠️ Nova política: comissão variável por faixa de preço. Frete grátis agora subsidiado pela Shopee (sem coparticipação).
+          ⚠️ Estrutura real: Comissão 12% base + 2% transação + 6% frete (opcional). Taxa fixa R$4-7 por item. Teto de comissão: R$100,00.
         </div>
         
         <div className="form-group">
-          <label>Faixa de Preço do Produto</label>
+          <label>Tipo de Vendedor</label>
           <div className="toggle-buttons">
             <button
               type="button"
-              className={settings.shopee.accountType === 'padrao' ? 'active' : ''}
-              onClick={() => handleShopeeAccountChange('padrao')}
+              className={settings.shopee.sellerType === 'cnpj' ? 'active' : ''}
+              onClick={() => handleSellerTypeChange('cnpj')}
             >
-              R$200-499
+              CNPJ (R$4)
             </button>
             <button
               type="button"
-              className={settings.shopee.accountType === 'volume' ? 'active' : ''}
-              onClick={() => handleShopeeAccountChange('volume')}
+              className={settings.shopee.sellerType === 'cpf_low_volume' ? 'active' : ''}
+              onClick={() => handleSellerTypeChange('cpf_low_volume')}
             >
-              R$500+
+              CPF Baixo Vol (R$7)
             </button>
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="shopeeCommission">
-              Comissão (%)
-              <span className="tooltip" title="Percentual de comissão da Shopee">ⓘ</span>
-            </label>
-            <input
-              id="shopeeCommission"
-              type="number"
-              min="0"
-              max="100"
-              step="0.1"
-              value={settings.shopee.commissionPercent}
-              onChange={(e) => onUpdateShopee({ commissionPercent: Math.max(0, Number(e.target.value)) })}
-            />
+        <div className="shopee-breakdown">
+          <strong>Componentes da Comissão:</strong>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="shopeeCommBase">
+                Comissão Base (%)
+                <span className="tooltip" title="12% padrão">ⓘ</span>
+              </label>
+              <input
+                id="shopeeCommBase"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={settings.shopee.commissionBasePercent}
+                onChange={(e) => onUpdateShopee({ commissionBasePercent: Math.max(0, Number(e.target.value)) })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="shopeeTransTax">
+                Taxa Transação (%)
+                <span className="tooltip" title="2% padrão para pagamento">ⓘ</span>
+              </label>
+              <input
+                id="shopeeTransTax"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={settings.shopee.transactionTaxPercent}
+                onChange={(e) => onUpdateShopee({ transactionTaxPercent: Math.max(0, Number(e.target.value)) })}
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="shopeeFixedFee">
-              Taxa Fixa (R$)
-              <span className="tooltip" title="Taxa fixa por item">ⓘ</span>
+          <div className="form-group checkbox-group">
+            <label htmlFor="shopeeFreight">
+              <input
+                id="shopeeFreight"
+                type="checkbox"
+                checked={settings.shopee.useFreightProgram}
+                onChange={(e) => onUpdateShopee({ useFreightProgram: e.target.checked })}
+              />
+              Programa Frete Grátis (+{settings.shopee.freightProgramPercent}%)
             </label>
-            <input
-              id="shopeeFixedFee"
-              type="number"
-              min="0"
-              step="0.01"
-              value={settings.shopee.fixedFee}
-              onChange={(e) => onUpdateShopee({ fixedFee: Math.max(0, Number(e.target.value)) })}
-            />
           </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="shopeeFixedFee">
+            Taxa Fixa por Item (R$)
+            <span className="tooltip" title="R$4 CNPJ, R$7 CPF baixo volume">ⓘ</span>
+          </label>
+          <input
+            id="shopeeFixedFee"
+            type="number"
+            min="0"
+            step="0.01"
+            value={settings.shopee.fixedFeePerItem}
+            onChange={(e) => onUpdateShopee({ fixedFeePerItem: Math.max(0, Number(e.target.value)) })}
+          />
         </div>
 
         <div className="form-group">
           <label htmlFor="shopeeCap">
-            Teto Comissão (R$)
-            <span className="tooltip" title="Valor máximo de comissão">ⓘ</span>
+            Teto Comissão % (R$)
+            <span className="tooltip" title="Máximo da parte percentual (R$100)">ⓘ</span>
           </label>
           <input
             id="shopeeCap"
             type="number"
             min="0"
             step="1"
-            value={settings.shopee.commissionCap}
-            onChange={(e) => onUpdateShopee({ commissionCap: Math.max(0, Number(e.target.value)) })}
+            value={settings.shopee.commissionPercentCap}
+            onChange={(e) => onUpdateShopee({ commissionPercentCap: Math.max(0, Number(e.target.value)) })}
           />
         </div>
       </div>

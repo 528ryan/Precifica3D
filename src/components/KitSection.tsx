@@ -89,11 +89,12 @@ export function KitSection({
       (price) =>
         calculateShopeeTaxes(
           price,
-          shopee.commissionPercent,
-          shopee.fixedFee,
-          shopee.commissionCap,
+          shopee.commissionBasePercent,
+          shopee.transactionTaxPercent,
+          shopee.freightProgramPercent,
           shopee.useFreightProgram,
-          shopee.freightProgramExtraPercent,
+          shopee.fixedFeePerItem,
+          shopee.commissionPercentCap,
           itemQuantity
         )
     );
@@ -104,11 +105,12 @@ export function KitSection({
       (price) =>
         calculateShopeeTaxes(
           price,
-          shopee.commissionPercent,
-          shopee.fixedFee,
-          shopee.commissionCap,
+          shopee.commissionBasePercent,
+          shopee.transactionTaxPercent,
+          shopee.freightProgramPercent,
           shopee.useFreightProgram,
-          shopee.freightProgramExtraPercent,
+          shopee.fixedFeePerItem,
+          shopee.commissionPercentCap,
           itemQuantity
         )
     );

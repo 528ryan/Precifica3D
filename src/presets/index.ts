@@ -77,20 +77,23 @@ export const materialPresets: MaterialPreset[] = [
   },
 ];
 
-// ===== SHOPEE (Março 2026) =====
-// Nova política: comissão variável por faixa de preço + taxa fixa por item
-// Frete grátis agora sem coparticipação para todos os vendedores
+// ===== SHOPEE (Fevereiro 2026) =====
+// Estrutura real: Comissão 12% + 2% taxa transação + opcional 6% frete = base 14% até 20%
+// Taxa fixa por item: R$4 (CNPJ alto volume) ou R$7 (CPF baixo volume)
+// Teto de comissão percentual: R$100,00 por item (não inclui taxa fixa)
 // Fonte: https://seller.shopee.com.br/edu/article/26839
 export const defaultShopeeSettings = {
-  // Comissão base para CNPJ (varia de 14% a 20% conforme faixa de preço)
-  // Usando 20% como padrão conservador para produtos > R$200
-  commissionPercent: 20,
-  // Taxa fixa por item (varia: R$4 até R$79, R$16 até R$199, R$20 até R$499, R$26 acima)
-  fixedFeePadrao: 20, // Para faixa R$200-499 (mais comum em impressões 3D)
-  fixedFeeVolume: 26, // Para produtos acima de R$500
-  commissionCap: 0, // Sem teto de comissão na nova política
-  // Frete grátis agora é subsídio da Shopee (sem coparticipação)
-  freightProgramExtraPercent: 0,
+  // Componentes da comissão percentual
+  commissionBasePercent: 12, // Comissão base
+  transactionTaxPercent: 2, // Taxa de transação/pagamento
+  freightProgramPercent: 6, // Adicional se frete grátis ativado
+  useFreightProgram: false, // Padrão: desativado
+  // Taxa fixa por item
+  fixedFeePerItem: 4, // R$4 para CNPJ, R$7 para CPF baixo volume
+  // Teto da comissão percentual
+  commissionPercentCap: 100, // R$100,00
+  // Tipo de vendedor
+  sellerType: 'cnpj' as const, // 'cnpj' ou 'cpf_low_volume'
 };
 
 // ===== MERCADO LIVRE (Março 2026) =====

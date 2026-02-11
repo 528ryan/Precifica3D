@@ -91,12 +91,17 @@ export interface ExtraCostsSettings {
 }
 
 export interface ShopeeSettings {
-  commissionPercent: number;
-  fixedFee: number;
-  commissionCap: number;
-  useFreightProgram: boolean;
-  freightProgramExtraPercent: number;
-  accountType: 'padrao' | 'volume';
+  // Componentes da comissão percentual
+  commissionBasePercent: number; // Padrão 12%
+  transactionTaxPercent: number; // Padrão 2%
+  freightProgramPercent: number; // Padrão 6% (adicional)
+  useFreightProgram: boolean; // Se ativa frete grátis
+  // Taxa fixa
+  fixedFeePerItem: number; // R$4 ou R$7
+  // Teto
+  commissionPercentCap: number; // Padrão R$100
+  // Tipo de vendedor
+  sellerType: 'cpf_low_volume' | 'cnpj';
 }
 
 export interface MercadoLivreSettings {

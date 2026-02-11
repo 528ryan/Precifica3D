@@ -45,12 +45,13 @@ const defaultSettings: AllSettings = {
   },
   platform: {
     shopee: {
-      commissionPercent: defaultShopeeSettings.commissionPercent,
-      fixedFee: defaultShopeeSettings.fixedFeePadrao,
-      commissionCap: defaultShopeeSettings.commissionCap,
-      useFreightProgram: false,
-      freightProgramExtraPercent: defaultShopeeSettings.freightProgramExtraPercent,
-      accountType: 'padrao',
+      commissionBasePercent: defaultShopeeSettings.commissionBasePercent,
+      transactionTaxPercent: defaultShopeeSettings.transactionTaxPercent,
+      freightProgramPercent: defaultShopeeSettings.freightProgramPercent,
+      useFreightProgram: defaultShopeeSettings.useFreightProgram,
+      fixedFeePerItem: defaultShopeeSettings.fixedFeePerItem,
+      commissionPercentCap: defaultShopeeSettings.commissionPercentCap,
+      sellerType: defaultShopeeSettings.sellerType,
     },
     mercadoLivre: {
       adType: 'classico',

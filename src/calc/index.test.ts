@@ -69,35 +69,104 @@ describe('Cálculos de Depreciação', () => {
   });
 });
 
-describe('Cálculos de Taxas - Shopee (Março 2026)', () => {
-  it('calcula taxas para faixa R$80-199', () => {
-    // Preço R$100 (faixa R$80-199): 16% + R$16
-    // 16% de 100 = R$16 + R$16 = R$32
-    expect(calculateShopeeTaxes(100, 20, 20, 0, false, 0, 1)).toBeCloseTo(32, 2);
+describe('Cálculos de Taxas - Shopee (Fevereiro 2026)', () => {
+  it('exemplo real: R$15,11 com frete grátis', () => {
+    // Preço: 15,11
+    // Base: 12% + 2% transação = 14%
+    // Frete grátis: +6% = 20% total
+    // Comissão: 15,11 * 0.20 = 3,022
+    // Taxa fixa: 4,00
+    // Total: 3,022 + 4,00 = 7,022 → 7,02
+    // Renda líquida esperada: 15,11 - 7,02 = 8,09
+    expect(
+      calculateShopeeTaxes(
+        15.11,
+        12, // commissionBasePercent
+        2, // transactionTaxPercent
+        6, // freightProgramPercent
+        true, // useFreightProgram
+        4, // fixedFeePerItem
+        100, // commissionPercentCap
+        1 // itemQuantity
+      )
+    ).toBeCloseTo(7.022, 2); // Deve resultar em 7,02 arredondado
   });
 
-  it('calcula taxas para faixa até R$79', () => {
-    // Preço R$50 (faixa até R$79): 14% + R$4
-    // 14% de 50 = R$7 + R$4 = R$11
-    expect(calculateShopeeTaxes(50, 20, 20, 0, false, 0, 1)).toBeCloseTo(11, 2);
+  it('calcula com comissão base + transação (sem frete)', () => {
+    // Preço: 50,00
+    // Comissão: 12% + 2% = 14%
+    // Valor: 50 * 0,14 = 7,00
+    // Taxa fixa: 4,00
+    // Total: 7 + 4 = 11,00
+    expect(
+      calculateShopeeTaxes(
+        50,
+        12,
+        2,
+        6,
+        false, // sem frete grátis
+        4,
+        100,
+        1
+      )
+    ).toBeCloseTo(11, 2);
   });
 
-  it('calcula taxas para faixa R$200-499', () => {
-    // Preço R$300 (faixa R$200-499): 20% + R$20
-    // 20% de 300 = R$60 + R$20 = R$80
-    expect(calculateShopeeTaxes(300, 20, 20, 0, false, 0, 1)).toBeCloseTo(80, 2);
+  it('calcula com frete grátis ativado', () => {
+    // Preço: 100,00
+    // Comissão: 12% + 2% + 6% = 20%
+    // Valor: 100 * 0,20 = 20,00
+    // Taxa fixa: 4,00
+    // Total: 20 + 4 = 24,00
+    expect(
+      calculateShopeeTaxes(100, 12, 2, 6, true, 4, 100, 1)
+    ).toBeCloseTo(24, 2);
   });
 
-  it('calcula taxas para faixa R$500+', () => {
-    // Preço R$600 (faixa R$500+): 20% + R$26
-    // 20% de 600 = R$120 + R$26 = R$146
-    expect(calculateShopeeTaxes(600, 20, 26, 0, false, 0, 1)).toBeCloseTo(146, 2);
+  it('aplica teto de comissão apenas na parte percentual', () => {
+    // Preço: 1000,00
+    // Comissão: 12% + 2% = 14%
+    // Valor bruto: 1000 * 0,14 = 140,00
+    // Teto: 100,00 (comissão limitada a 100)
+    // Taxa fixa: 4,00 (não entra no teto)
+    // Total: 100 + 4 = 104,00
+    expect(
+      calculateShopeeTaxes(1000, 12, 2, 6, false, 4, 100, 1)
+    ).toBeCloseTo(104, 2);
   });
 
-  it('multiplica taxa fixa por quantidade', () => {
-    // Preço R$300 (faixa R$200-499), 3 itens
-    // 20% de 300 = R$60 + R$20*3 = R$60 + R$60 = R$120
-    expect(calculateShopeeTaxes(300, 20, 20, 0, false, 0, 3)).toBeCloseTo(120, 2);
+  it('multiplica taxa fixa por quantidade de itens', () => {
+    // Preço: 50,00 por item
+    // Comissão: 14%
+    // Valor: 50 * 0,14 = 7,00
+    // Taxa fixa: 4,00 * 3 itens = 12,00
+    // Total: 7 + 12 = 19,00
+    expect(
+      calculateShopeeTaxes(50, 12, 2, 0, false, 4, 100, 3)
+    ).toBeCloseTo(19, 2);
+  });
+
+  it('respeita tipo de vendedor CPF (taxa fixa R$7)', () => {
+    // Preço: 50,00
+    // Comissão: 14%
+    // Valor: 50 * 0,14 = 7,00
+    // Taxa fixa: 7,00 (CPF baixo volume)
+    // Total: 7 + 7 = 14,00
+    expect(
+      calculateShopeeTaxes(50, 12, 2, 0, false, 7, 100, 1)
+    ).toBeCloseTo(14, 2);
+  });
+
+  it('não aplica teto se comissão for menor que o teto', () => {
+    // Preço: 30,00
+    // Comissão: 14%
+    // Valor: 30 * 0,14 = 4,20
+    // Teto: 100 (não é atingido)
+    // Taxa fixa: 4,00
+    // Total: 4,20 + 4 = 8,20
+    expect(
+      calculateShopeeTaxes(30, 12, 2, 0, false, 4, 100, 1)
+    ).toBeCloseTo(8.2, 2);
   });
 });
 

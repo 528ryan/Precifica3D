@@ -545,6 +545,22 @@ input::placeholder {
   margin: 0.5rem 0;
 }
 
+/* ===== Shopee Platform Section ===== */
+.shopee-breakdown {
+  background: rgba(238, 77, 45, 0.1);
+  border: 1px solid rgba(238, 77, 45, 0.2);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  margin: 1rem 0;
+}
+
+.shopee-breakdown strong {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
 /* ===== Footer ===== */
 .footer {
   background: #020617;

@@ -162,62 +162,47 @@ export function calculateCostBreakdown(settings: AllSettings): CostBreakdown {
 // ===== FUNÇÕES DE TAXAS =====
 
 /**
- * Calcula taxas da Shopee (Março 2026)
- * Nova política: comissão e taxa fixa variam por faixa de preço
- * Faixas CNPJ: 
- *   - Até R$79: 14% + R$4
- *   - R$80-199: 16% + R$16
- *   - R$200-499: 20% + R$20
- *   - R$500+: 20% + R$26
+ * Calcula taxas da Shopee (Fevereiro 2026)
+ * 
+ * Estrutura real:
+ * - Comissão: 12% base + 2% transação + 6% frete (opcional) = 14-20%
+ * - Taxa fixa: R$4 (CNPJ) ou R$7 (CPF baixo volume) por item
+ * - Teto de comissão: R$100,00 (aplicado APENAS à parte percentual, não à taxa fixa)
+ * 
+ * Fórmula:
+ * percentual_total = commissionBasePercent + transactionTaxPercent + (useFreightProgram ? freightProgramPercent : 0)
+ * comissao_percentual = price * percentual_total / 100
+ * if (comissao_percentual > commissionPercentCap) comissao_percentual = commissionPercentCap
+ * taxa_fixa = fixedFeePerItem * itemQuantity
+ * total_taxas = comissao_percentual + taxa_fixa
  */
 export function calculateShopeeTaxes(
   price: number,
-  commissionPercent: number,
-  fixedFee: number,
-  commissionCap: number,
+  commissionBasePercent: number,
+  transactionTaxPercent: number,
+  freightProgramPercent: number,
   useFreightProgram: boolean,
-  freightProgramExtraPercent: number,
+  fixedFeePerItem: number,
+  commissionPercentCap: number,
   itemQuantity: number
 ): number {
-  // Determinar comissão e taxa fixa pela faixa de preço (nova política março 2026)
-  let effectiveCommission: number;
-  let effectiveFixedFee: number;
-  
-  if (price < 8) {
-    // Produtos < R$8: taxa fixa é metade do preço
-    effectiveCommission = 14;
-    effectiveFixedFee = price / 2;
-  } else if (price <= 79) {
-    effectiveCommission = 14;
-    effectiveFixedFee = 4;
-  } else if (price <= 199) {
-    effectiveCommission = 16;
-    effectiveFixedFee = 16;
-  } else if (price <= 499) {
-    effectiveCommission = 20;
-    effectiveFixedFee = 20;
-  } else {
-    effectiveCommission = 20;
-    effectiveFixedFee = 26;
+  // Calcular percentual total
+  const totalPercentage =
+    commissionBasePercent + transactionTaxPercent + (useFreightProgram ? freightProgramPercent : 0);
+
+  // Calcular comissão percentual
+  let commissionPercentValue = (price * totalPercentage) / 100;
+
+  // Aplicar teto (apenas na parte percentual, não na taxa fixa)
+  if (commissionPercentValue > commissionPercentCap) {
+    commissionPercentValue = commissionPercentCap;
   }
-  
-  // Usar valores customizados se diferentes dos automáticos
-  if (commissionPercent !== 20 && commissionPercent !== 0) {
-    effectiveCommission = commissionPercent;
-  }
-  if (fixedFee !== 20 && fixedFee !== 26 && fixedFee !== 0) {
-    effectiveFixedFee = fixedFee;
-  }
-  
-  // Frete grátis agora é subsidiado pela Shopee (sem coparticipação)
-  // useFreightProgram mantido para compatibilidade, mas freightProgramExtraPercent deve ser 0
-  effectiveCommission += (useFreightProgram ? freightProgramExtraPercent : 0);
-  
-  const percentTax = commissionCap > 0 
-    ? Math.min(price * (effectiveCommission / 100), commissionCap)
-    : price * (effectiveCommission / 100);
-  const fixedTax = effectiveFixedFee * itemQuantity;
-  return percentTax + fixedTax;
+
+  // Calcular taxa fixa total
+  const fixedFeeTotal = fixedFeePerItem * itemQuantity;
+
+  // Total de taxas
+  return commissionPercentValue + fixedFeeTotal;
 }
 
 /**
@@ -420,16 +405,15 @@ export function calculateShopeeResult(
   const { shopee, itemQuantity } = settings.platform;
   const { targetMarginPercent, rangePaddingPercent, rounding } = settings.pricingGoals;
   
-  const fixedFee = shopee.accountType === 'padrao' ? 4 : 7;
-  
   const calculateTaxes = (price: number) =>
     calculateShopeeTaxes(
       price,
-      shopee.commissionPercent,
-      fixedFee,
-      shopee.commissionCap,
+      shopee.commissionBasePercent,
+      shopee.transactionTaxPercent,
+      shopee.freightProgramPercent,
       shopee.useFreightProgram,
-      shopee.freightProgramExtraPercent,
+      shopee.fixedFeePerItem,
+      shopee.commissionPercentCap,
       itemQuantity
     );
   
