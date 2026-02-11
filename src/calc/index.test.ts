@@ -13,6 +13,7 @@ import {
   findTargetPrice,
   applyPsychologicalRounding,
 } from './index';
+import { getSuggestedFixedFee } from '../presets';
 
 describe('Cálculos de Filamento', () => {
   it('calcula gramas totais com perdas e purga', () => {
@@ -167,6 +168,26 @@ describe('Cálculos de Taxas - Shopee (Fevereiro 2026)', () => {
     expect(
       calculateShopeeTaxes(30, 12, 2, 0, false, 4, 100, 1)
     ).toBeCloseTo(8.2, 2);
+  });
+});
+
+describe('Sugestão de Taxa Fixa - Shopee', () => {
+  it('sugere R$4 para CNPJ (qualquer volume)', () => {
+    expect(getSuggestedFixedFee('cnpj', '0-199')).toBe(4);
+    expect(getSuggestedFixedFee('cnpj', '200-499')).toBe(4);
+    expect(getSuggestedFixedFee('cnpj', '500+')).toBe(4);
+  });
+
+  it('sugere R$7 para CPF com volume 0-199', () => {
+    expect(getSuggestedFixedFee('cpf', '0-199')).toBe(7);
+  });
+
+  it('sugere R$4 para CPF com volume 200-499', () => {
+    expect(getSuggestedFixedFee('cpf', '200-499')).toBe(4);
+  });
+
+  it('sugere R$4 para CPF com volume 500+', () => {
+    expect(getSuggestedFixedFee('cpf', '500+')).toBe(4);
   });
 });
 

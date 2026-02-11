@@ -561,6 +561,27 @@ input::placeholder {
   color: var(--text-primary);
 }
 
+/* Input com hint */
+.input-with-hint {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.input-with-hint input {
+  flex: 1;
+}
+
+.input-with-hint .hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  background: rgba(99, 102, 241, 0.1);
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
 /* ===== Footer ===== */
 .footer {
   background: #020617;

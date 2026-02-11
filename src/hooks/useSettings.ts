@@ -7,6 +7,7 @@ import {
   defaultShopeeSettings,
   defaultMercadoLivreSettings,
   bandeiraExtras,
+  getSuggestedFixedFee,
 } from '../presets';
 
 const STORAGE_KEY = 'precifica3d-settings';
@@ -49,9 +50,13 @@ const defaultSettings: AllSettings = {
       transactionTaxPercent: defaultShopeeSettings.transactionTaxPercent,
       freightProgramPercent: defaultShopeeSettings.freightProgramPercent,
       useFreightProgram: defaultShopeeSettings.useFreightProgram,
-      fixedFeePerItem: defaultShopeeSettings.fixedFeePerItem,
+      fixedFeePerItem: getSuggestedFixedFee(
+        defaultShopeeSettings.sellerType,
+        defaultShopeeSettings.orderVolume
+      ),
       commissionPercentCap: defaultShopeeSettings.commissionPercentCap,
       sellerType: defaultShopeeSettings.sellerType,
+      orderVolume: defaultShopeeSettings.orderVolume,
     },
     mercadoLivre: {
       adType: 'classico',
