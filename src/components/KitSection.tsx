@@ -91,8 +91,8 @@ export function KitSection({
           price,
           shopee.commissionBasePercent,
           shopee.transactionTaxPercent,
-          shopee.freightProgramPercent,
-          shopee.useFreightProgram,
+          shopee.freteExtraPercent,
+          shopee.freteGratisAtivo,
           shopee.fixedFeePerItem,
           shopee.commissionPercentCap,
           itemQuantity
@@ -107,8 +107,8 @@ export function KitSection({
           price,
           shopee.commissionBasePercent,
           shopee.transactionTaxPercent,
-          shopee.freightProgramPercent,
-          shopee.useFreightProgram,
+          shopee.freteExtraPercent,
+          shopee.freteGratisAtivo,
           shopee.fixedFeePerItem,
           shopee.commissionPercentCap,
           itemQuantity

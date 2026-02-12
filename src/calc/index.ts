@@ -180,15 +180,15 @@ export function calculateShopeeTaxes(
   price: number,
   commissionBasePercent: number,
   transactionTaxPercent: number,
-  freightProgramPercent: number,
-  useFreightProgram: boolean,
+  freteExtraPercent: number,
+  freteGratisAtivo: boolean,
   fixedFeePerItem: number,
   commissionPercentCap: number,
   itemQuantity: number
 ): number {
   // Calcular percentual total
   const totalPercentage =
-    commissionBasePercent + transactionTaxPercent + (useFreightProgram ? freightProgramPercent : 0);
+    commissionBasePercent + transactionTaxPercent + (freteGratisAtivo ? freteExtraPercent : 0);
 
   // Calcular comissão percentual
   let commissionPercentValue = (price * totalPercentage) / 100;
@@ -410,8 +410,8 @@ export function calculateShopeeResult(
       price,
       shopee.commissionBasePercent,
       shopee.transactionTaxPercent,
-      shopee.freightProgramPercent,
-      shopee.useFreightProgram,
+      shopee.freteExtraPercent,
+      shopee.freteGratisAtivo,
       shopee.fixedFeePerItem,
       shopee.commissionPercentCap,
       itemQuantity

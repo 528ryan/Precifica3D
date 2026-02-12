@@ -48,8 +48,8 @@ const defaultSettings: AllSettings = {
     shopee: {
       commissionBasePercent: defaultShopeeSettings.commissionBasePercent,
       transactionTaxPercent: defaultShopeeSettings.transactionTaxPercent,
-      freightProgramPercent: defaultShopeeSettings.freightProgramPercent,
-      useFreightProgram: defaultShopeeSettings.useFreightProgram,
+      freteExtraPercent: defaultShopeeSettings.freteExtraPercent,
+      freteGratisAtivo: defaultShopeeSettings.freteGratisAtivo,
       fixedFeePerItem: getSuggestedFixedFee(
         defaultShopeeSettings.sellerType,
         defaultShopeeSettings.orderVolume

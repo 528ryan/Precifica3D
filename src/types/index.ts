@@ -94,8 +94,8 @@ export interface ShopeeSettings {
   // Componentes da comissão percentual (sempre editáveis)
   commissionBasePercent: number; // Padrão 12%
   transactionTaxPercent: number; // Padrão 2%
-  freightProgramPercent: number; // Padrão 6% (adicional, ligado/desligado)
-  useFreightProgram: boolean;
+  freteExtraPercent: number; // Padrão 6% (adicional, ligado/desligado)
+  freteGratisAtivo: boolean;
   // Teto de comissão percentual
   commissionPercentCap: number; // Padrão R$100
   // Taxa fixa por item (sempre editável)

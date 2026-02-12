@@ -84,8 +84,8 @@ describe('Cálculos de Taxas - Shopee (Fevereiro 2026)', () => {
         15.11,
         12, // commissionBasePercent
         2, // transactionTaxPercent
-        6, // freightProgramPercent
-        true, // useFreightProgram
+        6, // freteExtraPercent
+        true, // freteGratisAtivo
         4, // fixedFeePerItem
         100, // commissionPercentCap
         1 // itemQuantity
@@ -168,6 +168,26 @@ describe('Cálculos de Taxas - Shopee (Fevereiro 2026)', () => {
     expect(
       calculateShopeeTaxes(30, 12, 2, 0, false, 4, 100, 1)
     ).toBeCloseTo(8.2, 2);
+  });
+
+  it('calcula com extra OFF (percentual 14%) => taxas 6.12', () => {
+    // Preço: 15,11
+    // Base: 12% + 2% transação = 14% (SEM frete)
+    // Comissão: 15,11 * 0.14 = 2,1154
+    // Taxa fixa: 4,00
+    // Total: 2,1154 + 4,00 = 6,1154 → 6,12
+    expect(
+      calculateShopeeTaxes(
+        15.11,
+        12, // commissionBasePercent
+        2, // transactionTaxPercent
+        6, // freteExtraPercent
+        false, // freteGratisAtivo OFF
+        4, // fixedFeePerItem
+        100, // commissionPercentCap
+        1 // itemQuantity
+      )
+    ).toBeCloseTo(6.1154, 2);
   });
 });
 

@@ -137,10 +137,20 @@ export const PlatformSection: React.FC<PlatformSectionProps> = ({
               <input
                 id="shopeeFreight"
                 type="checkbox"
-                checked={settings.shopee.useFreightProgram}
-                onChange={(e) => onUpdateShopee({ useFreightProgram: e.target.checked })}
+                checked={settings.shopee.freteGratisAtivo}
+                onChange={(e) => onUpdateShopee({ freteGratisAtivo: e.target.checked })}
               />
-              Frete Grátis (+{settings.shopee.freightProgramPercent}% comissão)
+              Frete Grátis (+{settings.shopee.freteExtraPercent}% comissão)
+            </label>
+          </div>
+
+          {/* Total percentual */}
+          <div className="form-group">
+            <label>
+              Total Percentual:
+              <span style={{ fontWeight: 'bold', marginLeft: '0.5rem' }}>
+                {(settings.shopee.commissionBasePercent + settings.shopee.transactionTaxPercent + (settings.shopee.freteGratisAtivo ? settings.shopee.freteExtraPercent : 0)).toFixed(1)}%
+              </span>
             </label>
           </div>
         </div>

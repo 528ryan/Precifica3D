@@ -86,8 +86,8 @@ export const defaultShopeeSettings = {
   // Componentes da comissão percentual
   commissionBasePercent: 12, // Comissão base
   transactionTaxPercent: 2, // Taxa de transação/pagamento
-  freightProgramPercent: 6, // Adicional se frete grátis ativado
-  useFreightProgram: false, // Padrão: desativado
+  freteExtraPercent: 6, // Adicional se frete grátis ativado
+  freteGratisAtivo: false, // Padrão: desativado
   // Teto da comissão percentual
   commissionPercentCap: 100, // R$100,00
   // Taxa fixa por item (sempre editável)
