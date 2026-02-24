@@ -63,10 +63,24 @@ const PlatformResultCard: React.FC<{ result: PlatformResult; color: string }> = 
           <span className="value">{formatCurrency(bd.fixedFeeTotal)}</span>
         </div>
       )}
+      {result.impostoBreakdownAtTarget.impostoValor > 0 && (
+        <div className="result-row sub">
+          <span className="label">
+            Imposto s/ faturamento ({result.impostoBreakdownAtTarget.impostoPercentEfetivo.toFixed(2)}%)
+          </span>
+          <span className="value">{formatCurrency(result.impostoBreakdownAtTarget.impostoValor)}</span>
+        </div>
+      )}
       <div className="result-row">
-        <span className="label">Taxas no preço alvo</span>
-        <span className="value">{formatCurrency(result.taxesAtTarget)}</span>
+        <span className="label">Taxas marketplace (R$)</span>
+        <span className="value">{formatCurrency(bd.total)}</span>
       </div>
+      {result.impostoBreakdownAtTarget.impostoValor > 0 && (
+        <div className="result-row">
+          <span className="label"><strong>Total deduções</strong></span>
+          <span className="value">{formatCurrency(result.taxesAtTarget)}</span>
+        </div>
+      )}
 
       <div className="result-row">
         <span className="label">Lucro no preço alvo</span>

@@ -7,6 +7,7 @@ import {
   defaultShopeeSettings,
   defaultMercadoLivreSettings,
   defaultTikTokShopSettings,
+  defaultImpostoSettings,
   bandeiraExtras,
   getSuggestedFixedFee,
 } from '../presets';
@@ -79,6 +80,15 @@ const defaultSettings: AllSettings = {
     rangePaddingPercent: 8,
     rounding: 'none',
   },
+  imposto: {
+    ativo: defaultImpostoSettings.ativo,
+    regime: defaultImpostoSettings.regime,
+    percentual: defaultImpostoSettings.percentual,
+    meiDasMensal: defaultImpostoSettings.meiDasMensal,
+    meiVendasMes: defaultImpostoSettings.meiVendasMes,
+    meiRatearPorFaturamento: defaultImpostoSettings.meiRatearPorFaturamento,
+    meiFaturamentoMes: defaultImpostoSettings.meiFaturamentoMes,
+  },
 };
 
 export function useSettings() {
@@ -107,6 +117,10 @@ export function useSettings() {
               ...defaultSettings.platform.tikTokShop,
               ...(parsed.platform?.tikTokShop ?? {}),
             },
+          },
+          imposto: {
+            ...defaultSettings.imposto,
+            ...(parsed.imposto ?? {}),
           },
         };
       }
@@ -189,6 +203,13 @@ export function useSettings() {
     }));
   }, []);
 
+  const updateImposto = useCallback((updates: Partial<AllSettings['imposto']>) => {
+    setSettings((prev) => ({
+      ...prev,
+      imposto: { ...prev.imposto, ...updates },
+    }));
+  }, []);
+
   const updatePricingGoals = useCallback((updates: Partial<AllSettings['pricingGoals']>) => {
     setSettings((prev) => ({
       ...prev,
@@ -211,6 +232,7 @@ export function useSettings() {
     updateShopee,
     updateMercadoLivre,
     updateTikTokShop,
+    updateImposto,
     updatePricingGoals,
     resetSettings,
   };

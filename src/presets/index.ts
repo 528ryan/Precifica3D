@@ -153,3 +153,18 @@ export const defaultTikTokShopSettings = {
   fixedFeeThreshold: 79.00,   // Limite: abaixo de R$79 aplica taxa fixa
   promoZeroCommission: false, // Incentivo temporário de comissão 0%
 };
+
+// ===== IMPOSTO SOBRE FATURAMENTO =====
+// Todos os valores são editáveis pelo usuário.
+// Regime MEI 2026: DAS ~R$75,90/mês (varia conforme INSS + ISS/ICMS).
+// Fonte MEI: https://www.gov.br/empresas-e-negocios/pt-br/empreendedor
+// Simples Nacional: 1a faixa ~6% (commerce/services — confirme sua tabela).
+export const defaultImpostoSettings = {
+  ativo: false,
+  regime: 'isento' as const,
+  percentual: 6,                    // % padrão para simples/presumido/custom
+  meiDasMensal: 75.90,              // DAS mensal MEI 2026 (editável)
+  meiVendasMes: 100,                // vendas/mês para rateio por unidade
+  meiRatearPorFaturamento: false,   // false = rateio por unidade
+  meiFaturamentoMes: 0,             // faturamento/mês para rateio alternativo
+};

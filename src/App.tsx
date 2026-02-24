@@ -10,6 +10,7 @@ import {
   ExtraCostsSection,
   PlatformSection,
   PricingGoalsSection,
+  ImpostoSection,
   ResultsSection,
   ProductPresetsSection,
   KitSection,
@@ -28,6 +29,7 @@ function App() {
     updateShopee,
     updateMercadoLivre,
     updateTikTokShop,
+    updateImposto,
     updatePricingGoals,
     resetSettings,
   } = useSettings();
@@ -97,6 +99,11 @@ function App() {
             onUpdateShopee={updateShopee}
             onUpdateMercadoLivre={updateMercadoLivre}
             onUpdateTikTokShop={updateTikTokShop}
+          />
+
+          <ImpostoSection
+            settings={settings.imposto}
+            onUpdate={updateImposto}
           />
 
           <PricingGoalsSection

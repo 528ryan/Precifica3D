@@ -138,6 +138,27 @@ export interface PricingGoals {
   rounding: 'none' | '90' | '99' | '50';
 }
 
+// ===== IMPOSTO SOBRE FATURAMENTO =====
+
+export type Regime = 'isento' | 'mei' | 'simples' | 'presumido' | 'custom';
+
+export interface ImpostoSettings {
+  /** Se o imposto está ativo (default OFF) */
+  ativo: boolean;
+  /** Regime tributário selecionado */
+  regime: Regime;
+  /** Alíquota em % — para simples, presumido e custom */
+  percentual: number;
+  /** DAS mensal do MEI em R$ (default 75,90) */
+  meiDasMensal: number;
+  /** Vendas/mês para rateio por unidade (default 100) */
+  meiVendasMes: number;
+  /** Ratear o DAS por faturamento em vez de por unidade */
+  meiRatearPorFaturamento: boolean;
+  /** Faturamento mensal estimado para rateio (default 0 → usa rateio por unidade) */
+  meiFaturamentoMes: number;
+}
+
 export interface AllSettings {
   print: PrintSettings;
   material: MaterialSettings;
@@ -145,6 +166,7 @@ export interface AllSettings {
   extraCosts: ExtraCostsSettings;
   platform: PlatformSettings;
   pricingGoals: PricingGoals;
+  imposto: ImpostoSettings;
 }
 
 export interface CostBreakdown {
@@ -173,6 +195,13 @@ export interface TaxBreakdown {
   total: number;
 }
 
+export interface ImpostoBreakdown {
+  /** Valor do imposto no preço alvo (R$) */
+  impostoValor: number;
+  /** Percentual efetivo do imposto no preço alvo */
+  impostoPercentEfetivo: number;
+}
+
 export interface PlatformResult {
   platformName: string;
   breakEvenPrice: number;
@@ -186,6 +215,8 @@ export interface PlatformResult {
   taxesAtRangeMax: number;
   /** Breakdown detalhado das taxas calculadas no preço alvo */
   taxBreakdownAtTarget: TaxBreakdown;
+  /** Breakdown do imposto sobre faturamento no preço alvo */
+  impostoBreakdownAtTarget: ImpostoBreakdown;
 }
 
 export interface CalculationResult {

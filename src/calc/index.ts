@@ -3,8 +3,10 @@ import type {
   CostBreakdown,
   PlatformResult,
   TaxBreakdown,
+  ImpostoBreakdown,
   CalculationResult,
 } from '../types';
+import { impostoValor, impostoPercentEfetivo } from './tax/imposto';
 
 // ===== FUNÇÕES DE CUSTO =====
 
@@ -495,6 +497,29 @@ export function applyPsychologicalRoundingUp(
 
 // ===== CÁLCULO COMPLETO POR PLATAFORMA =====
 
+// ===== HELPER INTERNO =====
+
+/**
+ * Constrói uma função de dedução total que combina taxas de marketplace + imposto.
+ * Usada pelas buscas binárias (break-even e preço alvo).
+ */
+function buildTotalDeductionCalc(
+  taxCalc: (price: number) => number,
+  impostoConfig: AllSettings['imposto']
+): (price: number) => number {
+  return (price: number) => taxCalc(price) + impostoValor(price, impostoConfig);
+}
+
+/** Monta o ImpostoBreakdown para um dado preço */
+function buildImpostoBreakdown(price: number, config: AllSettings['imposto']): ImpostoBreakdown {
+  return {
+    impostoValor: impostoValor(price, config),
+    impostoPercentEfetivo: impostoPercentEfetivo(price, config),
+  };
+}
+
+// ===== CÁLCULO COMPLETO POR PLATAFORMA =====
+
 /**
  * Calcula resultados para Shopee
  */
@@ -504,8 +529,8 @@ export function calculateShopeeResult(
 ): PlatformResult {
   const { shopee, itemQuantity } = settings.platform;
   const { targetMarginPercent, rangePaddingPercent, rounding } = settings.pricingGoals;
-  
-  const calculateTaxes = (price: number) =>
+
+  const marketplaceTaxCalc = (price: number) =>
     calculateShopeeTaxes(
       price,
       shopee.commissionBasePercent,
@@ -516,14 +541,15 @@ export function calculateShopeeResult(
       shopee.commissionPercentCap,
       itemQuantity
     );
-  
-  const breakEvenPrice = findBreakEvenPrice(cogs, calculateTaxes);
-  const targetPrice = findTargetPrice(cogs, targetMarginPercent, calculateTaxes);
-  
+  const totalDeductionCalc = buildTotalDeductionCalc(marketplaceTaxCalc, settings.imposto);
+
+  const breakEvenPrice = findBreakEvenPrice(cogs, totalDeductionCalc);
+  const targetPrice = findTargetPrice(cogs, targetMarginPercent, totalDeductionCalc);
+
   const rangeMin = applyPsychologicalRounding(Math.max(targetPrice, breakEvenPrice), rounding);
   const rangeMaxRaw = targetPrice * (1 + rangePaddingPercent / 100);
   const rangeMax = applyPsychologicalRoundingUp(rangeMaxRaw, rounding);
-  
+
   const taxBreakdownAtTarget = calculateShopeeTaxBreakdown(
     rangeMin,
     shopee.commissionBasePercent,
@@ -534,12 +560,14 @@ export function calculateShopeeResult(
     shopee.commissionPercentCap,
     itemQuantity
   );
-  const profitAtTarget = calculateProfit(rangeMin, cogs, taxBreakdownAtTarget.total);
+  const impostoBreakdownAtTarget = buildImpostoBreakdown(rangeMin, settings.imposto);
+  const totalDeductionsAtTarget = taxBreakdownAtTarget.total + impostoBreakdownAtTarget.impostoValor;
+  const profitAtTarget = calculateProfit(rangeMin, cogs, totalDeductionsAtTarget);
   const actualMarginAtTarget = calculateMargin(rangeMin, profitAtTarget);
-  
-  const taxesAtRangeMax = calculateTaxes(rangeMax);
+
+  const taxesAtRangeMax = totalDeductionCalc(rangeMax);
   const profitAtRangeMax = calculateProfit(rangeMax, cogs, taxesAtRangeMax);
-  
+
   return {
     platformName: 'Shopee',
     breakEvenPrice,
@@ -549,9 +577,10 @@ export function calculateShopeeResult(
     profitAtTarget,
     profitAtRangeMax,
     actualMarginAtTarget,
-    taxesAtTarget: taxBreakdownAtTarget.total,
+    taxesAtTarget: totalDeductionsAtTarget,
     taxesAtRangeMax,
     taxBreakdownAtTarget,
+    impostoBreakdownAtTarget,
   };
 }
 
@@ -564,8 +593,8 @@ export function calculateMercadoLivreResult(
 ): PlatformResult {
   const { mercadoLivre, itemQuantity } = settings.platform;
   const { targetMarginPercent, rangePaddingPercent, rounding } = settings.pricingGoals;
-  
-  const calculateTaxes = (price: number) =>
+
+  const marketplaceTaxCalc = (price: number) =>
     calculateMercadoLivreTaxes(
       price,
       mercadoLivre.commissionPercent,
@@ -574,14 +603,15 @@ export function calculateMercadoLivreResult(
       mercadoLivre.fixedFeeAboveThreshold,
       itemQuantity
     );
-  
-  const breakEvenPrice = findBreakEvenPrice(cogs, calculateTaxes);
-  const targetPrice = findTargetPrice(cogs, targetMarginPercent, calculateTaxes);
-  
+  const totalDeductionCalc = buildTotalDeductionCalc(marketplaceTaxCalc, settings.imposto);
+
+  const breakEvenPrice = findBreakEvenPrice(cogs, totalDeductionCalc);
+  const targetPrice = findTargetPrice(cogs, targetMarginPercent, totalDeductionCalc);
+
   const rangeMin = applyPsychologicalRounding(Math.max(targetPrice, breakEvenPrice), rounding);
   const rangeMaxRaw = targetPrice * (1 + rangePaddingPercent / 100);
   const rangeMax = applyPsychologicalRoundingUp(rangeMaxRaw, rounding);
-  
+
   const taxBreakdownAtTarget = calculateMercadoLivreTaxBreakdown(
     rangeMin,
     mercadoLivre.commissionPercent,
@@ -590,12 +620,14 @@ export function calculateMercadoLivreResult(
     mercadoLivre.fixedFeeAboveThreshold,
     itemQuantity
   );
-  const profitAtTarget = calculateProfit(rangeMin, cogs, taxBreakdownAtTarget.total);
+  const impostoBreakdownAtTarget = buildImpostoBreakdown(rangeMin, settings.imposto);
+  const totalDeductionsAtTarget = taxBreakdownAtTarget.total + impostoBreakdownAtTarget.impostoValor;
+  const profitAtTarget = calculateProfit(rangeMin, cogs, totalDeductionsAtTarget);
   const actualMarginAtTarget = calculateMargin(rangeMin, profitAtTarget);
-  
-  const taxesAtRangeMax = calculateTaxes(rangeMax);
+
+  const taxesAtRangeMax = totalDeductionCalc(rangeMax);
   const profitAtRangeMax = calculateProfit(rangeMax, cogs, taxesAtRangeMax);
-  
+
   return {
     platformName: 'Mercado Livre',
     breakEvenPrice,
@@ -605,9 +637,10 @@ export function calculateMercadoLivreResult(
     profitAtTarget,
     profitAtRangeMax,
     actualMarginAtTarget,
-    taxesAtTarget: taxBreakdownAtTarget.total,
+    taxesAtTarget: totalDeductionsAtTarget,
     taxesAtRangeMax,
     taxBreakdownAtTarget,
+    impostoBreakdownAtTarget,
   };
 }
 
@@ -621,7 +654,7 @@ export function calculateTikTokShopResult(
   const { tikTokShop, itemQuantity } = settings.platform;
   const { targetMarginPercent, rangePaddingPercent, rounding } = settings.pricingGoals;
 
-  const calculateTaxes = (price: number) =>
+  const marketplaceTaxCalc = (price: number) =>
     calculateTikTokShopTaxes(
       price,
       tikTokShop.commissionPercent,
@@ -630,9 +663,10 @@ export function calculateTikTokShopResult(
       tikTokShop.promoZeroCommission,
       itemQuantity
     );
+  const totalDeductionCalc = buildTotalDeductionCalc(marketplaceTaxCalc, settings.imposto);
 
-  const breakEvenPrice = findBreakEvenPrice(cogs, calculateTaxes);
-  const targetPrice = findTargetPrice(cogs, targetMarginPercent, calculateTaxes);
+  const breakEvenPrice = findBreakEvenPrice(cogs, totalDeductionCalc);
+  const targetPrice = findTargetPrice(cogs, targetMarginPercent, totalDeductionCalc);
 
   const rangeMin = applyPsychologicalRounding(Math.max(targetPrice, breakEvenPrice), rounding);
   const rangeMaxRaw = targetPrice * (1 + rangePaddingPercent / 100);
@@ -646,10 +680,12 @@ export function calculateTikTokShopResult(
     tikTokShop.promoZeroCommission,
     itemQuantity
   );
-  const profitAtTarget = calculateProfit(rangeMin, cogs, taxBreakdownAtTarget.total);
+  const impostoBreakdownAtTarget = buildImpostoBreakdown(rangeMin, settings.imposto);
+  const totalDeductionsAtTarget = taxBreakdownAtTarget.total + impostoBreakdownAtTarget.impostoValor;
+  const profitAtTarget = calculateProfit(rangeMin, cogs, totalDeductionsAtTarget);
   const actualMarginAtTarget = calculateMargin(rangeMin, profitAtTarget);
 
-  const taxesAtRangeMax = calculateTaxes(rangeMax);
+  const taxesAtRangeMax = totalDeductionCalc(rangeMax);
   const profitAtRangeMax = calculateProfit(rangeMax, cogs, taxesAtRangeMax);
 
   return {
@@ -661,9 +697,10 @@ export function calculateTikTokShopResult(
     profitAtTarget,
     profitAtRangeMax,
     actualMarginAtTarget,
-    taxesAtTarget: taxBreakdownAtTarget.total,
+    taxesAtTarget: totalDeductionsAtTarget,
     taxesAtRangeMax,
     taxBreakdownAtTarget,
+    impostoBreakdownAtTarget,
   };
 }
 

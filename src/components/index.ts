@@ -4,6 +4,7 @@ export { EnergySection } from './EnergySection';
 export { ExtraCostsSection } from './ExtraCostsSection';
 export { PlatformSection } from './PlatformSection';
 export { PricingGoalsSection } from './PricingGoalsSection';
+export { ImpostoSection } from './ImpostoSection';
 export { ResultsSection } from './ResultsSection';
 export { ProductPresetsSection } from './ProductPresetsSection';
 export { KitSection } from './KitSection';
