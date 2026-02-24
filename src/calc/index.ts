@@ -4,9 +4,11 @@ import type {
   PlatformResult,
   TaxBreakdown,
   ImpostoBreakdown,
+  AdsBreakdown,
   CalculationResult,
 } from '../types';
 import { impostoValor, impostoPercentEfetivo } from './tax/imposto';
+import { adsValor, adsPercentEfetivo } from './ads';
 
 // ===== FUNÇÕES DE CUSTO =====
 
@@ -500,14 +502,22 @@ export function applyPsychologicalRoundingUp(
 // ===== HELPER INTERNO =====
 
 /**
- * Constrói uma função de dedução total que combina taxas de marketplace + imposto.
+ * Constrói uma função de dedução total que combina taxas de marketplace + imposto + ads.
  * Usada pelas buscas binárias (break-even e preço alvo).
  */
 function buildTotalDeductionCalc(
   taxCalc: (price: number) => number,
-  impostoConfig: AllSettings['imposto']
+  impostoConfig: AllSettings['imposto'],
+  marketplace: import('../types').Marketplace,
+  itemQuantity: number,
+  adsShopee: AllSettings['adsShopee'],
+  adsMercado: AllSettings['adsMercado'],
+  adsTikTok: AllSettings['adsTikTok']
 ): (price: number) => number {
-  return (price: number) => taxCalc(price) + impostoValor(price, impostoConfig);
+  return (price: number) =>
+    taxCalc(price) +
+    impostoValor(price, impostoConfig) +
+    adsValor(price, marketplace, itemQuantity, adsShopee, adsMercado, adsTikTok);
 }
 
 /** Monta o ImpostoBreakdown para um dado preço */
@@ -515,6 +525,21 @@ function buildImpostoBreakdown(price: number, config: AllSettings['imposto']): I
   return {
     impostoValor: impostoValor(price, config),
     impostoPercentEfetivo: impostoPercentEfetivo(price, config),
+  };
+}
+
+/** Monta o AdsBreakdown para um dado preço */
+function buildAdsBreakdown(
+  price: number,
+  marketplace: import('../types').Marketplace,
+  itemQuantity: number,
+  adsShopee: AllSettings['adsShopee'],
+  adsMercado: AllSettings['adsMercado'],
+  adsTikTok: AllSettings['adsTikTok']
+): AdsBreakdown {
+  return {
+    adsValor: adsValor(price, marketplace, itemQuantity, adsShopee, adsMercado, adsTikTok),
+    adsPercentEfetivo: adsPercentEfetivo(price, marketplace, itemQuantity, adsShopee, adsMercado, adsTikTok),
   };
 }
 
@@ -541,7 +566,15 @@ export function calculateShopeeResult(
       shopee.commissionPercentCap,
       itemQuantity
     );
-  const totalDeductionCalc = buildTotalDeductionCalc(marketplaceTaxCalc, settings.imposto);
+  const totalDeductionCalc = buildTotalDeductionCalc(
+    marketplaceTaxCalc,
+    settings.imposto,
+    'shopee',
+    itemQuantity,
+    settings.adsShopee,
+    settings.adsMercado,
+    settings.adsTikTok
+  );
 
   const breakEvenPrice = findBreakEvenPrice(cogs, totalDeductionCalc);
   const targetPrice = findTargetPrice(cogs, targetMarginPercent, totalDeductionCalc);
@@ -561,7 +594,18 @@ export function calculateShopeeResult(
     itemQuantity
   );
   const impostoBreakdownAtTarget = buildImpostoBreakdown(rangeMin, settings.imposto);
-  const totalDeductionsAtTarget = taxBreakdownAtTarget.total + impostoBreakdownAtTarget.impostoValor;
+  const adsBreakdownAtTarget = buildAdsBreakdown(
+    rangeMin,
+    'shopee',
+    itemQuantity,
+    settings.adsShopee,
+    settings.adsMercado,
+    settings.adsTikTok
+  );
+  const totalDeductionsAtTarget =
+    taxBreakdownAtTarget.total +
+    impostoBreakdownAtTarget.impostoValor +
+    adsBreakdownAtTarget.adsValor;
   const profitAtTarget = calculateProfit(rangeMin, cogs, totalDeductionsAtTarget);
   const actualMarginAtTarget = calculateMargin(rangeMin, profitAtTarget);
 
@@ -581,6 +625,7 @@ export function calculateShopeeResult(
     taxesAtRangeMax,
     taxBreakdownAtTarget,
     impostoBreakdownAtTarget,
+    adsBreakdownAtTarget,
   };
 }
 
@@ -603,7 +648,15 @@ export function calculateMercadoLivreResult(
       mercadoLivre.fixedFeeAboveThreshold,
       itemQuantity
     );
-  const totalDeductionCalc = buildTotalDeductionCalc(marketplaceTaxCalc, settings.imposto);
+  const totalDeductionCalc = buildTotalDeductionCalc(
+    marketplaceTaxCalc,
+    settings.imposto,
+    'mercado_livre',
+    itemQuantity,
+    settings.adsShopee,
+    settings.adsMercado,
+    settings.adsTikTok
+  );
 
   const breakEvenPrice = findBreakEvenPrice(cogs, totalDeductionCalc);
   const targetPrice = findTargetPrice(cogs, targetMarginPercent, totalDeductionCalc);
@@ -621,7 +674,18 @@ export function calculateMercadoLivreResult(
     itemQuantity
   );
   const impostoBreakdownAtTarget = buildImpostoBreakdown(rangeMin, settings.imposto);
-  const totalDeductionsAtTarget = taxBreakdownAtTarget.total + impostoBreakdownAtTarget.impostoValor;
+  const adsBreakdownAtTarget = buildAdsBreakdown(
+    rangeMin,
+    'mercado_livre',
+    itemQuantity,
+    settings.adsShopee,
+    settings.adsMercado,
+    settings.adsTikTok
+  );
+  const totalDeductionsAtTarget =
+    taxBreakdownAtTarget.total +
+    impostoBreakdownAtTarget.impostoValor +
+    adsBreakdownAtTarget.adsValor;
   const profitAtTarget = calculateProfit(rangeMin, cogs, totalDeductionsAtTarget);
   const actualMarginAtTarget = calculateMargin(rangeMin, profitAtTarget);
 
@@ -641,6 +705,7 @@ export function calculateMercadoLivreResult(
     taxesAtRangeMax,
     taxBreakdownAtTarget,
     impostoBreakdownAtTarget,
+    adsBreakdownAtTarget,
   };
 }
 
@@ -663,7 +728,15 @@ export function calculateTikTokShopResult(
       tikTokShop.promoZeroCommission,
       itemQuantity
     );
-  const totalDeductionCalc = buildTotalDeductionCalc(marketplaceTaxCalc, settings.imposto);
+  const totalDeductionCalc = buildTotalDeductionCalc(
+    marketplaceTaxCalc,
+    settings.imposto,
+    'tiktok',
+    itemQuantity,
+    settings.adsShopee,
+    settings.adsMercado,
+    settings.adsTikTok
+  );
 
   const breakEvenPrice = findBreakEvenPrice(cogs, totalDeductionCalc);
   const targetPrice = findTargetPrice(cogs, targetMarginPercent, totalDeductionCalc);
@@ -681,7 +754,18 @@ export function calculateTikTokShopResult(
     itemQuantity
   );
   const impostoBreakdownAtTarget = buildImpostoBreakdown(rangeMin, settings.imposto);
-  const totalDeductionsAtTarget = taxBreakdownAtTarget.total + impostoBreakdownAtTarget.impostoValor;
+  const adsBreakdownAtTarget = buildAdsBreakdown(
+    rangeMin,
+    'tiktok',
+    itemQuantity,
+    settings.adsShopee,
+    settings.adsMercado,
+    settings.adsTikTok
+  );
+  const totalDeductionsAtTarget =
+    taxBreakdownAtTarget.total +
+    impostoBreakdownAtTarget.impostoValor +
+    adsBreakdownAtTarget.adsValor;
   const profitAtTarget = calculateProfit(rangeMin, cogs, totalDeductionsAtTarget);
   const actualMarginAtTarget = calculateMargin(rangeMin, profitAtTarget);
 
@@ -701,6 +785,7 @@ export function calculateTikTokShopResult(
     taxesAtRangeMax,
     taxBreakdownAtTarget,
     impostoBreakdownAtTarget,
+    adsBreakdownAtTarget,
   };
 }
 

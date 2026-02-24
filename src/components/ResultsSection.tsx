@@ -71,11 +71,24 @@ const PlatformResultCard: React.FC<{ result: PlatformResult; color: string }> = 
           <span className="value">{formatCurrency(result.impostoBreakdownAtTarget.impostoValor)}</span>
         </div>
       )}
+      {result.adsBreakdownAtTarget.adsValor > 0 && (
+        <div className="result-row sub">
+          <span className="label">
+            {result.platformName === 'Shopee'
+              ? 'Shopee Ads'
+              : result.platformName === 'Mercado Livre'
+              ? 'Mercado Ads'
+              : 'TikTok Ads'}{' '}
+            ({result.adsBreakdownAtTarget.adsPercentEfetivo.toFixed(2)}%)
+          </span>
+          <span className="value">{formatCurrency(result.adsBreakdownAtTarget.adsValor)}</span>
+        </div>
+      )}
       <div className="result-row">
         <span className="label">Taxas marketplace (R$)</span>
         <span className="value">{formatCurrency(bd.total)}</span>
       </div>
-      {result.impostoBreakdownAtTarget.impostoValor > 0 && (
+      {(result.impostoBreakdownAtTarget.impostoValor > 0 || result.adsBreakdownAtTarget.adsValor > 0) && (
         <div className="result-row">
           <span className="label"><strong>Total deduções</strong></span>
           <span className="value">{formatCurrency(result.taxesAtTarget)}</span>

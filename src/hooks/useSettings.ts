@@ -11,6 +11,7 @@ import {
   bandeiraExtras,
   getSuggestedFixedFee,
 } from '../presets';
+import { defaultAdsConfig } from '../calc/ads';
 
 const STORAGE_KEY = 'precifica3d-settings';
 
@@ -89,6 +90,9 @@ const defaultSettings: AllSettings = {
     meiRatearPorFaturamento: defaultImpostoSettings.meiRatearPorFaturamento,
     meiFaturamentoMes: defaultImpostoSettings.meiFaturamentoMes,
   },
+  adsShopee: { ...defaultAdsConfig },
+  adsMercado: { ...defaultAdsConfig },
+  adsTikTok: { ...defaultAdsConfig },
 };
 
 export function useSettings() {
@@ -121,6 +125,18 @@ export function useSettings() {
           imposto: {
             ...defaultSettings.imposto,
             ...(parsed.imposto ?? {}),
+          },
+          adsShopee: {
+            ...defaultSettings.adsShopee,
+            ...(parsed.adsShopee ?? {}),
+          },
+          adsMercado: {
+            ...defaultSettings.adsMercado,
+            ...(parsed.adsMercado ?? {}),
+          },
+          adsTikTok: {
+            ...defaultSettings.adsTikTok,
+            ...(parsed.adsTikTok ?? {}),
           },
         };
       }
@@ -210,6 +226,27 @@ export function useSettings() {
     }));
   }, []);
 
+  const updateAdsShopee = useCallback((updates: Partial<AllSettings['adsShopee']>) => {
+    setSettings((prev) => ({
+      ...prev,
+      adsShopee: { ...prev.adsShopee, ...updates },
+    }));
+  }, []);
+
+  const updateAdsMercado = useCallback((updates: Partial<AllSettings['adsMercado']>) => {
+    setSettings((prev) => ({
+      ...prev,
+      adsMercado: { ...prev.adsMercado, ...updates },
+    }));
+  }, []);
+
+  const updateAdsTikTok = useCallback((updates: Partial<AllSettings['adsTikTok']>) => {
+    setSettings((prev) => ({
+      ...prev,
+      adsTikTok: { ...prev.adsTikTok, ...updates },
+    }));
+  }, []);
+
   const updatePricingGoals = useCallback((updates: Partial<AllSettings['pricingGoals']>) => {
     setSettings((prev) => ({
       ...prev,
@@ -233,6 +270,9 @@ export function useSettings() {
     updateMercadoLivre,
     updateTikTokShop,
     updateImposto,
+    updateAdsShopee,
+    updateAdsMercado,
+    updateAdsTikTok,
     updatePricingGoals,
     resetSettings,
   };

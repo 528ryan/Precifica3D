@@ -1,3 +1,18 @@
+// ===== TIPOS DE ANÚNCIOS =====
+
+export type Marketplace = 'shopee' | 'mercado_livre' | 'tiktok'
+
+export type AdsModel = 'percent_sales' | 'per_order' | 'per_item'
+
+export interface AdsConfig {
+  enabled: boolean
+  model: AdsModel
+  percentSales: number
+  perOrder: number
+  perItem: number
+  splitPerItem: boolean
+}
+
 // ===== TIPOS PRINCIPAIS =====
 
 export interface SavedProduct {
@@ -167,6 +182,9 @@ export interface AllSettings {
   platform: PlatformSettings;
   pricingGoals: PricingGoals;
   imposto: ImpostoSettings;
+  adsShopee: AdsConfig;
+  adsMercado: AdsConfig;
+  adsTikTok: AdsConfig;
 }
 
 export interface CostBreakdown {
@@ -202,6 +220,20 @@ export interface ImpostoBreakdown {
   impostoPercentEfetivo: number;
 }
 
+export interface AdsBreakdown {
+  /** Valor do custo de anúncio no preço calculado (R$) */
+  adsValor: number;
+  /** Percentual efetivo do anúncio em relação ao preço */
+  adsPercentEfetivo: number;
+}
+
+export interface AdsBreakdown {
+  /** Valor do anúncio no preço alvo (R$) */
+  adsValor: number;
+  /** Percentual efetivo do anúncio no preço alvo */
+  adsPercentEfetivo: number;
+}
+
 export interface PlatformResult {
   platformName: string;
   breakEvenPrice: number;
@@ -217,6 +249,8 @@ export interface PlatformResult {
   taxBreakdownAtTarget: TaxBreakdown;
   /** Breakdown do imposto sobre faturamento no preço alvo */
   impostoBreakdownAtTarget: ImpostoBreakdown;
+  /** Breakdown de anúncios no preço alvo */
+  adsBreakdownAtTarget: AdsBreakdown;
 }
 
 export interface CalculationResult {
