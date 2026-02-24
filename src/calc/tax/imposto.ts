@@ -1,23 +1,23 @@
 /**
- * Módulo de Imposto sobre Faturamento (Revenue Tax)
+ * Mï¿½dulo de Imposto sobre Faturamento (Revenue Tax)
  *
- * O imposto incide sobre o PREÇO DE VENDA (receita bruta), não sobre o lucro.
- * Funciona como mais uma dedução do faturamento, análoga às comissões de marketplace.
+ * O imposto incide sobre o PREï¿½O DE VENDA (receita bruta), nï¿½o sobre o lucro.
+ * Funciona como mais uma deduï¿½ï¿½o do faturamento, anï¿½loga ï¿½s comissï¿½es de marketplace.
  *
  * Regimes suportados:
  *   'isento'     0% (CPF informal, isento)
  *   'mei'        DAS mensal fixo rateado por unidades ou por faturamento
- *   'simples'    alíquota percentual (Simples Nacional)
- *   'presumido'  alíquota percentual (Lucro Presumido)
- *   'custom'     alíquota percentual livre
+ *   'simples'    alï¿½quota percentual (Simples Nacional)
+ *   'presumido'  alï¿½quota percentual (Lucro Presumido)
+ *   'custom'     alï¿½quota percentual livre
  */
 
 import type { ImpostoSettings } from '../../types';
 
 /**
- * Calcula o valor do imposto por item para um dado preço de venda.
+ * Calcula o valor do imposto por item para um dado preï¿½o de venda.
  *
- * Fórmulas:
+ * Fï¿½rmulas:
  *  - Isento:  0
  *  - Percentual (simples/presumido/custom): preco * (percentual/100)
  *  - MEI rateio por faturamento: preco * (DAS_mensal / faturamento_mes)
@@ -41,7 +41,7 @@ export function impostoValor(preco: number, config: ImpostoSettings): number {
         const pct = config.meiDasMensal / config.meiFaturamentoMes;
         return preco * pct;
       }
-      // Rateio por unidade: custo fixo por item, independente do preço
+      // Rateio por unidade: custo fixo por item, independente do preï¿½o
       const vendasMes = Math.max(1, config.meiVendasMes);
       return config.meiDasMensal / vendasMes;
     }
@@ -52,8 +52,8 @@ export function impostoValor(preco: number, config: ImpostoSettings): number {
 }
 
 /**
- * Retorna o percentual efetivo do imposto em relação ao preço de venda.
- * Para MEI rateio por unidade, o percentual varia com o preço.
+ * Retorna o percentual efetivo do imposto em relaï¿½ï¿½o ao preï¿½o de venda.
+ * Para MEI rateio por unidade, o percentual varia com o preï¿½o.
  */
 export function impostoPercentEfetivo(preco: number, config: ImpostoSettings): number {
   if (!config.ativo || preco <= 0) return 0;
