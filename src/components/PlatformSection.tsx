@@ -7,6 +7,7 @@ interface PlatformSectionProps {
   onUpdate: (updates: Partial<AllSettings['platform']>) => void;
   onUpdateShopee: (updates: Partial<AllSettings['platform']['shopee']>) => void;
   onUpdateMercadoLivre: (updates: Partial<AllSettings['platform']['mercadoLivre']>) => void;
+  onUpdateTikTokShop: (updates: Partial<AllSettings['platform']['tikTokShop']>) => void;
 }
 
 export const PlatformSection: React.FC<PlatformSectionProps> = ({
@@ -14,6 +15,7 @@ export const PlatformSection: React.FC<PlatformSectionProps> = ({
   onUpdate,
   onUpdateShopee,
   onUpdateMercadoLivre,
+  onUpdateTikTokShop,
 }) => {
   const handleMLAdTypeChange = (adType: 'classico' | 'premium') => {
     const commissionPercent = adType === 'classico'
@@ -280,6 +282,79 @@ export const PlatformSection: React.FC<PlatformSectionProps> = ({
               onChange={(e) => onUpdateMercadoLivre({ fixedFeeAboveThreshold: Math.max(0, Number(e.target.value)) })}
             />
           </div>
+        </div>
+      </div>
+
+      {/* TikTok Shop */}
+      <div className="subsection platform-tiktok">
+        <h3>🎵 TikTok Shop Brasil (2026)</h3>
+
+        <div className="info-box">
+          ⚠️ Comissão: {settings.tikTokShop.promoZeroCommission ? '0% (PROMO ATIVA)' : `${settings.tikTokShop.commissionPercent}%`} sobre o valor do produto.
+          Taxa fixa R${settings.tikTokShop.fixedFeePerItem.toFixed(2)} por item
+          quando preço &lt; R${settings.tikTokShop.fixedFeeThreshold.toFixed(2)}.
+          Sem teto de comissão.
+        </div>
+
+        <div className="form-group checkbox-group">
+          <label htmlFor="tiktokPromo">
+            <input
+              id="tiktokPromo"
+              type="checkbox"
+              checked={settings.tikTokShop.promoZeroCommission}
+              onChange={(e) => onUpdateTikTokShop({ promoZeroCommission: e.target.checked })}
+            />
+            🎁 Incentivo temporário: Comissão 0%
+          </label>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="tiktokCommission">
+              Comissão (%)
+              <span className="tooltip" title="Padrão 6% sobre o valor do produto">ⓘ</span>
+            </label>
+            <input
+              id="tiktokCommission"
+              type="number"
+              min="0"
+              max="100"
+              step="0.1"
+              value={settings.tikTokShop.commissionPercent}
+              disabled={settings.tikTokShop.promoZeroCommission}
+              onChange={(e) => onUpdateTikTokShop({ commissionPercent: Math.max(0, Number(e.target.value)) })}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="tiktokFixedFee">
+              Taxa Fixa por Item (R$)
+              <span className="tooltip" title="Aplicada quando preço < limite. Padrão R$2,00">ⓘ</span>
+            </label>
+            <input
+              id="tiktokFixedFee"
+              type="number"
+              min="0"
+              step="0.01"
+              value={settings.tikTokShop.fixedFeePerItem}
+              onChange={(e) => onUpdateTikTokShop({ fixedFeePerItem: Math.max(0, Number(e.target.value)) })}
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="tiktokThreshold">
+            Limite de Preço para Taxa Fixa (R$)
+            <span className="tooltip" title="Taxa fixa só se aplica abaixo deste valor. Padrão R$79,00">ⓘ</span>
+          </label>
+          <input
+            id="tiktokThreshold"
+            type="number"
+            min="0"
+            step="1"
+            value={settings.tikTokShop.fixedFeeThreshold}
+            onChange={(e) => onUpdateTikTokShop({ fixedFeeThreshold: Math.max(0, Number(e.target.value)) })}
+          />
         </div>
       </div>
     </div>

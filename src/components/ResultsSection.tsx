@@ -5,6 +5,7 @@ interface ResultsSectionProps {
   costs: CostBreakdown;
   shopee: PlatformResult;
   mercadoLivre: PlatformResult;
+  tikTokShop: PlatformResult;
   isValid: boolean;
 }
 
@@ -23,6 +24,8 @@ const PlatformResultCard: React.FC<{ result: PlatformResult; color: string }> = 
   result,
   color,
 }) => {
+  const bd = result.taxBreakdownAtTarget;
+
   return (
     <div className={`platform-result ${color}`}>
       <h4>{result.platformName}</h4>
@@ -45,12 +48,26 @@ const PlatformResultCard: React.FC<{ result: PlatformResult; color: string }> = 
       </div>
       
       <div className="divider" />
-      
+
+      {/* Breakdown de taxas no preço alvo */}
+      <div className="result-row sub">
+        <span className="label">Comissão % ({formatPercent(bd.percentualTotal)})</span>
+        <span className="value">
+          {formatCurrency(bd.commissionValue)}
+          {bd.commissionCapped && <span className="badge">teto</span>}
+        </span>
+      </div>
+      {bd.fixedFeeTotal > 0 && (
+        <div className="result-row sub">
+          <span className="label">Taxa fixa</span>
+          <span className="value">{formatCurrency(bd.fixedFeeTotal)}</span>
+        </div>
+      )}
       <div className="result-row">
         <span className="label">Taxas no preço alvo</span>
         <span className="value">{formatCurrency(result.taxesAtTarget)}</span>
       </div>
-      
+
       <div className="result-row">
         <span className="label">Lucro no preço alvo</span>
         <span className="value profit">{formatCurrency(result.profitAtTarget)}</span>
@@ -75,6 +92,7 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({
   costs,
   shopee,
   mercadoLivre,
+  tikTokShop,
   isValid,
 }) => {
   if (!isValid) {
@@ -142,11 +160,12 @@ export const ResultsSection: React.FC<ResultsSectionProps> = ({
       
       {/* Comparativo de Plataformas */}
       <div className="platforms-comparison">
-        <h3>Comparativo Shopee x Mercado Livre</h3>
+        <h3>Comparativo Shopee × Mercado Livre × TikTok Shop</h3>
         
         <div className="platforms-grid">
           <PlatformResultCard result={shopee} color="orange" />
           <PlatformResultCard result={mercadoLivre} color="blue" />
+          <PlatformResultCard result={tikTokShop} color="tiktok" />
         </div>
       </div>
     </div>

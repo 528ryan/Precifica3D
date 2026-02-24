@@ -7,6 +7,8 @@ import {
   calculateDepreciationPerHour,
   calculateShopeeTaxes,
   calculateMercadoLivreTaxes,
+  calculateTikTokShopTaxes,
+  calculateTikTokShopTaxBreakdown,
   calculateProfit,
   calculateMargin,
   findBreakEvenPrice,
@@ -318,5 +320,151 @@ describe('Arredondamento Psicológico', () => {
 
   it('arredonda para ,50', () => {
     expect(applyPsychologicalRounding(45.67, '50')).toBe(45.50);
+  });
+});
+
+// =============================================================
+// TIKTOK SHOP BRASIL (2026)
+// Regras:
+//   - Comissão: commissionPercent% (padrão 6%) sobre o preço.
+//   - Taxa fixa: fixedFeePerItem (padrão R$2) quando preço < threshold (padrão R$79).
+//   - Sem teto de comissão.
+//   - Promoção de comissão 0% desativa a parte percentual.
+// =============================================================
+describe('Cálculos de Taxas - TikTok Shop Brasil (2026)', () => {
+  // Caso a) especificado na tarefa
+  it('a) preco=50 → 6% de 50 + R$2 taxa fixa = R$5,00', () => {
+    // 50 * 6% = 3; taxa fixa = 2 (pois 50 < 79); total = 5
+    expect(
+      calculateTikTokShopTaxes(50, 6, 2, 79, false, 1)
+    ).toBeCloseTo(5, 2);
+  });
+
+  // Caso b) especificado na tarefa
+  it('b) preco=120 → 6% de 120 sem taxa fixa = R$7,20', () => {
+    // 120 >= 79, então sem taxa fixa; 120 * 6% = 7.20
+    expect(
+      calculateTikTokShopTaxes(120, 6, 2, 79, false, 1)
+    ).toBeCloseTo(7.20, 2);
+  });
+
+  it('aplica taxa fixa exatamente no limite inferior (preco=78.99 < 79)', () => {
+    // 78.99 < 79 → taxa fixa aplicada
+    // 78.99 * 6% = 4.7394 + 2 = 6.7394
+    expect(
+      calculateTikTokShopTaxes(78.99, 6, 2, 79, false, 1)
+    ).toBeCloseTo(6.7394, 2);
+  });
+
+  it('não aplica taxa fixa exatamente no limite superior (preco=79.00 >= 79)', () => {
+    // 79 >= 79 → sem taxa fixa
+    // 79 * 6% = 4.74
+    expect(
+      calculateTikTokShopTaxes(79, 6, 2, 79, false, 1)
+    ).toBeCloseTo(4.74, 2);
+  });
+
+  it('promoção de comissão 0% zera comissão percentual mas mantém taxa fixa', () => {
+    // comissão = 0%; taxa fixa = 2 (pois 50 < 79)
+    expect(
+      calculateTikTokShopTaxes(50, 6, 2, 79, true, 1)
+    ).toBeCloseTo(2, 2);
+  });
+
+  it('promoção de comissão 0% sem taxa fixa (preco >= threshold)', () => {
+    // comissão = 0%; preço >= 79, sem taxa fixa → total = 0
+    expect(
+      calculateTikTokShopTaxes(100, 6, 2, 79, true, 1)
+    ).toBeCloseTo(0, 2);
+  });
+
+  it('multiplica taxa fixa por quantidade de itens', () => {
+    // preco=50, 3 itens: comissão = 50*6% = 3; taxa fixa = 2*3 = 6; total = 9
+    expect(
+      calculateTikTokShopTaxes(50, 6, 2, 79, false, 3)
+    ).toBeCloseTo(9, 2);
+  });
+
+  it('breakdown: preco=50 → commissionValue=3, fixedFeeTotal=2, total=5', () => {
+    const bd = calculateTikTokShopTaxBreakdown(50, 6, 2, 79, false, 1);
+    expect(bd.commissionValue).toBeCloseTo(3, 2);
+    expect(bd.fixedFeeTotal).toBeCloseTo(2, 2);
+    expect(bd.total).toBeCloseTo(5, 2);
+    expect(bd.commissionCapped).toBe(false);
+    expect(bd.percentualTotal).toBe(6);
+  });
+
+  it('breakdown: preco=120 → commissionValue=7.20, fixedFeeTotal=0, total=7.20', () => {
+    const bd = calculateTikTokShopTaxBreakdown(120, 6, 2, 79, false, 1);
+    expect(bd.commissionValue).toBeCloseTo(7.2, 2);
+    expect(bd.fixedFeeTotal).toBe(0);
+    expect(bd.total).toBeCloseTo(7.2, 2);
+  });
+
+  it('permite override de comissão para taxas futuras distintas de 6%', () => {
+    // Se TikTok mudar para 8%, deve calcular corretamente
+    // preco=100, 8% = 8; sem taxa fixa pois 100 >= 79
+    expect(
+      calculateTikTokShopTaxes(100, 8, 2, 79, false, 1)
+    ).toBeCloseTo(8, 2);
+  });
+
+  it('permite override de taxa fixa para valores distintos de R$2', () => {
+    // Se TikTok mudar taxa fixa para R$3
+    // preco=50: 6% de 50 + 3 = 3 + 3 = 6
+    expect(
+      calculateTikTokShopTaxes(50, 6, 3, 79, false, 1)
+    ).toBeCloseTo(6, 2);
+  });
+});
+
+// =============================================================
+// SHOPEE — caso c) especificado na tarefa
+// base=12, transacao=2, extra=6, fixa=4 → renda líquida para preco=15.11
+// =============================================================
+describe('Cálculos de Taxas - Shopee caso c) tarefa', () => {
+  it('c) Shopee base=12, transação=2, extra=6, fixa=4, preco=15.11 → taxas≈7.022, renda≈8.09', () => {
+    const price = 15.11;
+    const taxes = calculateShopeeTaxes(price, 12, 2, 6, true, 4, 100, 1);
+    // 15.11 * 20% = 3.022 + 4 = 7.022
+    expect(taxes).toBeCloseTo(7.022, 2);
+    // Renda líquida = preço - taxas (COGS = 0 neste teste isolado)
+    const rendaLiquida = calculateProfit(price, 0, taxes);
+    expect(rendaLiquida).toBeCloseTo(8.088, 1);
+  });
+});
+
+// =============================================================
+// MERCADO LIVRE — caso d) especificado na tarefa
+// Teste de faixas "escalonadas" por peso/custo operacional (< R$79)
+// =============================================================
+describe('Cálculos de Taxas - Mercado Livre faixas operacionais (caso d)', () => {
+  it('d1) faixa R$50-79: comissão 14% + custo fixo R$6.75', () => {
+    // preco=60: 14% = 8.40 + 6.75 = R$15.15
+    expect(calculateMercadoLivreTaxes(60, 14, 79, 6.75, 0, 1)).toBeCloseTo(15.15, 2);
+  });
+
+  it('d2) faixa R$29-50: comissão 14% + custo fixo R$6.50', () => {
+    // preco=40: 14% = 5.60 + 6.50 = R$12.10
+    expect(calculateMercadoLivreTaxes(40, 14, 79, 6.75, 0, 1)).toBeCloseTo(12.10, 2);
+  });
+
+  it('d3) faixa R$12.50-29: comissão 14% + custo fixo R$6.25', () => {
+    // preco=20: 14% = 2.80 + 6.25 = R$9.05
+    expect(calculateMercadoLivreTaxes(20, 14, 79, 6.75, 0, 1)).toBeCloseTo(9.05, 2);
+  });
+
+  it('d4) produto < R$12.50: taxa fixa = metade do preço', () => {
+    // preco=10: 14% = 1.40 + (10/2)=5 = R$6.40
+    expect(calculateMercadoLivreTaxes(10, 14, 79, 6.75, 0, 1)).toBeCloseTo(6.40, 2);
+  });
+
+  it('d5) produto acima de R$79: só comissão percentual, sem custo fixo', () => {
+    // preco=100: 14% = 14 + 0 = R$14
+    expect(calculateMercadoLivreTaxes(100, 14, 79, 6.75, 0, 1)).toBeCloseTo(14, 2);
+  });
+
+  it('d6) comissão premium (19%) para produto > R$79', () => {
+    expect(calculateMercadoLivreTaxes(100, 19, 79, 6.75, 0, 1)).toBeCloseTo(19, 2);
   });
 });

@@ -141,3 +141,15 @@ export const bandeiraExtras: Record<string, number> = {
 };
 
 export const defaultEnergyPricePerKwh = 0.72;
+
+// ===== TIKTOK SHOP BRASIL (2026) =====
+// Comissão: 6% (sem teto).
+// Taxa fixa: R$2,00 por item quando preço < R$79,00.
+// Promoção temporária de comissão 0% pode ser ativada pelo vendedor.
+// Fonte: https://seller-br.tiktok.com/university/essay?knowledge_id=10000785
+export const defaultTikTokShopSettings = {
+  commissionPercent: 6,       // 6% sobre o valor do produto
+  fixedFeePerItem: 2.00,      // R$2,00 por item abaixo do threshold
+  fixedFeeThreshold: 79.00,   // Limite: abaixo de R$79 aplica taxa fixa
+  promoZeroCommission: false, // Incentivo temporário de comissão 0%
+};

@@ -114,9 +114,21 @@ export interface MercadoLivreSettings {
   fixedFeeAboveThreshold: number;
 }
 
+export interface TikTokShopSettings {
+  /** Comissão percentual – padrão 6% */
+  commissionPercent: number;
+  /** Taxa fixa por item quando preço < fixedFeeThreshold – padrão R$2,00 */
+  fixedFeePerItem: number;
+  /** Limite de preço para aplicar taxa fixa – padrão R$79,00 */
+  fixedFeeThreshold: number;
+  /** Ativar incentivo temporário de comissão 0% */
+  promoZeroCommission: boolean;
+}
+
 export interface PlatformSettings {
   shopee: ShopeeSettings;
   mercadoLivre: MercadoLivreSettings;
+  tikTokShop: TikTokShopSettings;
   itemQuantity: number;
 }
 
@@ -148,6 +160,19 @@ export interface CostBreakdown {
   cogs: number;
 }
 
+export interface TaxBreakdown {
+  /** Percentual total aplicado (comissão + transação + extras) */
+  percentualTotal: number;
+  /** Valor da comissão percentual (já com teto, se houver) */
+  commissionValue: number;
+  /** Se o teto de comissão foi atingido */
+  commissionCapped: boolean;
+  /** Soma das taxas fixas (taxa fixa * quantidade) */
+  fixedFeeTotal: number;
+  /** Total de taxas = commissionValue + fixedFeeTotal */
+  total: number;
+}
+
 export interface PlatformResult {
   platformName: string;
   breakEvenPrice: number;
@@ -159,10 +184,13 @@ export interface PlatformResult {
   actualMarginAtTarget: number;
   taxesAtTarget: number;
   taxesAtRangeMax: number;
+  /** Breakdown detalhado das taxas calculadas no preço alvo */
+  taxBreakdownAtTarget: TaxBreakdown;
 }
 
 export interface CalculationResult {
   costs: CostBreakdown;
   shopee: PlatformResult;
   mercadoLivre: PlatformResult;
+  tikTokShop: PlatformResult;
 }

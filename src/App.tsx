@@ -27,6 +27,7 @@ function App() {
     updatePlatform,
     updateShopee,
     updateMercadoLivre,
+    updateTikTokShop,
     updatePricingGoals,
     resetSettings,
   } = useSettings();
@@ -95,6 +96,7 @@ function App() {
             onUpdate={updatePlatform}
             onUpdateShopee={updateShopee}
             onUpdateMercadoLivre={updateMercadoLivre}
+            onUpdateTikTokShop={updateTikTokShop}
           />
 
           <PricingGoalsSection
@@ -126,6 +128,7 @@ function App() {
             costs={results.costs}
             shopee={results.shopee}
             mercadoLivre={results.mercadoLivre}
+            tikTokShop={results.tikTokShop}
             isValid={isValid}
           />
         </div>

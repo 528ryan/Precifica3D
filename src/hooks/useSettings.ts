@@ -6,6 +6,7 @@ import {
   defaultEnergyPricePerKwh,
   defaultShopeeSettings,
   defaultMercadoLivreSettings,
+  defaultTikTokShopSettings,
   bandeiraExtras,
   getSuggestedFixedFee,
 } from '../presets';
@@ -64,6 +65,12 @@ const defaultSettings: AllSettings = {
       priceThreshold: defaultMercadoLivreSettings.priceThreshold,
       fixedFeeBelowThreshold: defaultMercadoLivreSettings.fixedFeeBelowThreshold,
       fixedFeeAboveThreshold: defaultMercadoLivreSettings.fixedFeeAboveThreshold,
+    },
+    tikTokShop: {
+      commissionPercent: defaultTikTokShopSettings.commissionPercent,
+      fixedFeePerItem: defaultTikTokShopSettings.fixedFeePerItem,
+      fixedFeeThreshold: defaultTikTokShopSettings.fixedFeeThreshold,
+      promoZeroCommission: defaultTikTokShopSettings.promoZeroCommission,
     },
     itemQuantity: 1,
   },
@@ -151,6 +158,16 @@ export function useSettings() {
     }));
   }, []);
 
+  const updateTikTokShop = useCallback((updates: Partial<AllSettings['platform']['tikTokShop']>) => {
+    setSettings((prev) => ({
+      ...prev,
+      platform: {
+        ...prev.platform,
+        tikTokShop: { ...prev.platform.tikTokShop, ...updates },
+      },
+    }));
+  }, []);
+
   const updatePricingGoals = useCallback((updates: Partial<AllSettings['pricingGoals']>) => {
     setSettings((prev) => ({
       ...prev,
@@ -172,6 +189,7 @@ export function useSettings() {
     updatePlatform,
     updateShopee,
     updateMercadoLivre,
+    updateTikTokShop,
     updatePricingGoals,
     resetSettings,
   };

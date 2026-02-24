@@ -2,6 +2,7 @@ import type {
   AllSettings,
   CostBreakdown,
   PlatformResult,
+  TaxBreakdown,
   CalculationResult,
 } from '../types';
 
@@ -186,23 +187,43 @@ export function calculateShopeeTaxes(
   commissionPercentCap: number,
   itemQuantity: number
 ): number {
-  // Calcular percentual total
-  const totalPercentage =
+  return calculateShopeeTaxBreakdown(
+    price, commissionBasePercent, transactionTaxPercent, freteExtraPercent,
+    freteGratisAtivo, fixedFeePerItem, commissionPercentCap, itemQuantity
+  ).total;
+}
+
+/**
+ * Versão com breakdown completo das taxas da Shopee
+ */
+export function calculateShopeeTaxBreakdown(
+  price: number,
+  commissionBasePercent: number,
+  transactionTaxPercent: number,
+  freteExtraPercent: number,
+  freteGratisAtivo: boolean,
+  fixedFeePerItem: number,
+  commissionPercentCap: number,
+  itemQuantity: number
+): TaxBreakdown {
+  const percentualTotal =
     commissionBasePercent + transactionTaxPercent + (freteGratisAtivo ? freteExtraPercent : 0);
 
-  // Calcular comissão percentual
-  let commissionPercentValue = (price * totalPercentage) / 100;
-
-  // Aplicar teto (apenas na parte percentual, não na taxa fixa)
-  if (commissionPercentValue > commissionPercentCap) {
-    commissionPercentValue = commissionPercentCap;
+  let commissionValue = (price * percentualTotal) / 100;
+  const commissionCapped = commissionValue > commissionPercentCap;
+  if (commissionCapped) {
+    commissionValue = commissionPercentCap;
   }
 
-  // Calcular taxa fixa total
   const fixedFeeTotal = fixedFeePerItem * itemQuantity;
 
-  // Total de taxas
-  return commissionPercentValue + fixedFeeTotal;
+  return {
+    percentualTotal,
+    commissionValue,
+    commissionCapped,
+    fixedFeeTotal,
+    total: commissionValue + fixedFeeTotal,
+  };
 }
 
 /**
@@ -219,24 +240,103 @@ export function calculateMercadoLivreTaxes(
   fixedFeeAboveThreshold: number,
   itemQuantity: number
 ): number {
-  const percentTax = price * (commissionPercent / 100);
-  
-  let fixedFee: number;
+  return calculateMercadoLivreTaxBreakdown(
+    price, commissionPercent, priceThreshold,
+    fixedFeeBelowThreshold, fixedFeeAboveThreshold, itemQuantity
+  ).total;
+}
+
+/**
+ * Versão com breakdown completo das taxas do Mercado Livre
+ */
+export function calculateMercadoLivreTaxBreakdown(
+  price: number,
+  commissionPercent: number,
+  priceThreshold: number,
+  fixedFeeBelowThreshold: number,
+  fixedFeeAboveThreshold: number,
+  itemQuantity: number
+): TaxBreakdown {
+  const commissionValue = price * (commissionPercent / 100);
+
+  let fixedFeeUnit: number;
   if (price > priceThreshold) {
-    fixedFee = fixedFeeAboveThreshold;
+    fixedFeeUnit = fixedFeeAboveThreshold;
   } else if (price < 12.50) {
     // Produtos < R$12,50 pagam metade do preço
-    fixedFee = price / 2;
+    fixedFeeUnit = price / 2;
   } else if (price <= 29) {
-    fixedFee = 6.25;
+    fixedFeeUnit = 6.25;
   } else if (price <= 50) {
-    fixedFee = 6.50;
+    fixedFeeUnit = 6.50;
   } else {
-    fixedFee = fixedFeeBelowThreshold; // 6.75 para R$50-79
+    fixedFeeUnit = fixedFeeBelowThreshold; // 6.75 para R$50-79
   }
-  
-  const fixedTax = fixedFee * itemQuantity;
-  return percentTax + fixedTax;
+
+  const fixedFeeTotal = fixedFeeUnit * itemQuantity;
+
+  return {
+    percentualTotal: commissionPercent,
+    commissionValue,
+    commissionCapped: false,
+    fixedFeeTotal,
+    total: commissionValue + fixedFeeTotal,
+  };
+}
+
+/**
+ * Calcula taxas do TikTok Shop Brasil (2026)
+ *
+ * Regras:
+ * - Comissão percentual fixa: commissionPercent% (padrão 6%) sobre o valor do produto.
+ * - Taxa fixa: fixedFeePerItem por item quando preço < fixedFeeThreshold (padrão R$79).
+ * - Não há teto de comissão.
+ * - Incentivo: se promoZeroCommission=true, comissão percentual = 0%.
+ *
+ * Exemplos:
+ *   preco=50  → 6% de 50 + R$2 taxa fixa = 3 + 2 = R$5,00
+ *   preco=120 → 6% de 120, sem taxa fixa   = R$7,20
+ *
+ * Fonte: https://seller-br.tiktok.com/university/essay?knowledge_id=10000785
+ */
+export function calculateTikTokShopTaxes(
+  price: number,
+  commissionPercent: number,
+  fixedFeePerItem: number,
+  fixedFeeThreshold: number,
+  promoZeroCommission: boolean,
+  itemQuantity: number
+): number {
+  return calculateTikTokShopTaxBreakdown(
+    price, commissionPercent, fixedFeePerItem,
+    fixedFeeThreshold, promoZeroCommission, itemQuantity
+  ).total;
+}
+
+/**
+ * Versão com breakdown completo das taxas do TikTok Shop
+ */
+export function calculateTikTokShopTaxBreakdown(
+  price: number,
+  commissionPercent: number,
+  fixedFeePerItem: number,
+  fixedFeeThreshold: number,
+  promoZeroCommission: boolean,
+  itemQuantity: number
+): TaxBreakdown {
+  const effectivePercent = promoZeroCommission ? 0 : commissionPercent;
+  const commissionValue = price * (effectivePercent / 100);
+
+  // Taxa fixa só se preço < threshold
+  const fixedFeeTotal = price < fixedFeeThreshold ? fixedFeePerItem * itemQuantity : 0;
+
+  return {
+    percentualTotal: effectivePercent,
+    commissionValue,
+    commissionCapped: false,
+    fixedFeeTotal,
+    total: commissionValue + fixedFeeTotal,
+  };
 }
 
 /**
@@ -424,8 +524,17 @@ export function calculateShopeeResult(
   const rangeMaxRaw = targetPrice * (1 + rangePaddingPercent / 100);
   const rangeMax = applyPsychologicalRoundingUp(rangeMaxRaw, rounding);
   
-  const taxesAtTarget = calculateTaxes(rangeMin);
-  const profitAtTarget = calculateProfit(rangeMin, cogs, taxesAtTarget);
+  const taxBreakdownAtTarget = calculateShopeeTaxBreakdown(
+    rangeMin,
+    shopee.commissionBasePercent,
+    shopee.transactionTaxPercent,
+    shopee.freteExtraPercent,
+    shopee.freteGratisAtivo,
+    shopee.fixedFeePerItem,
+    shopee.commissionPercentCap,
+    itemQuantity
+  );
+  const profitAtTarget = calculateProfit(rangeMin, cogs, taxBreakdownAtTarget.total);
   const actualMarginAtTarget = calculateMargin(rangeMin, profitAtTarget);
   
   const taxesAtRangeMax = calculateTaxes(rangeMax);
@@ -440,8 +549,9 @@ export function calculateShopeeResult(
     profitAtTarget,
     profitAtRangeMax,
     actualMarginAtTarget,
-    taxesAtTarget,
+    taxesAtTarget: taxBreakdownAtTarget.total,
     taxesAtRangeMax,
+    taxBreakdownAtTarget,
   };
 }
 
@@ -472,8 +582,15 @@ export function calculateMercadoLivreResult(
   const rangeMaxRaw = targetPrice * (1 + rangePaddingPercent / 100);
   const rangeMax = applyPsychologicalRoundingUp(rangeMaxRaw, rounding);
   
-  const taxesAtTarget = calculateTaxes(rangeMin);
-  const profitAtTarget = calculateProfit(rangeMin, cogs, taxesAtTarget);
+  const taxBreakdownAtTarget = calculateMercadoLivreTaxBreakdown(
+    rangeMin,
+    mercadoLivre.commissionPercent,
+    mercadoLivre.priceThreshold,
+    mercadoLivre.fixedFeeBelowThreshold,
+    mercadoLivre.fixedFeeAboveThreshold,
+    itemQuantity
+  );
+  const profitAtTarget = calculateProfit(rangeMin, cogs, taxBreakdownAtTarget.total);
   const actualMarginAtTarget = calculateMargin(rangeMin, profitAtTarget);
   
   const taxesAtRangeMax = calculateTaxes(rangeMax);
@@ -488,8 +605,65 @@ export function calculateMercadoLivreResult(
     profitAtTarget,
     profitAtRangeMax,
     actualMarginAtTarget,
-    taxesAtTarget,
+    taxesAtTarget: taxBreakdownAtTarget.total,
     taxesAtRangeMax,
+    taxBreakdownAtTarget,
+  };
+}
+
+/**
+ * Calcula resultados para TikTok Shop Brasil
+ */
+export function calculateTikTokShopResult(
+  cogs: number,
+  settings: AllSettings
+): PlatformResult {
+  const { tikTokShop, itemQuantity } = settings.platform;
+  const { targetMarginPercent, rangePaddingPercent, rounding } = settings.pricingGoals;
+
+  const calculateTaxes = (price: number) =>
+    calculateTikTokShopTaxes(
+      price,
+      tikTokShop.commissionPercent,
+      tikTokShop.fixedFeePerItem,
+      tikTokShop.fixedFeeThreshold,
+      tikTokShop.promoZeroCommission,
+      itemQuantity
+    );
+
+  const breakEvenPrice = findBreakEvenPrice(cogs, calculateTaxes);
+  const targetPrice = findTargetPrice(cogs, targetMarginPercent, calculateTaxes);
+
+  const rangeMin = applyPsychologicalRounding(Math.max(targetPrice, breakEvenPrice), rounding);
+  const rangeMaxRaw = targetPrice * (1 + rangePaddingPercent / 100);
+  const rangeMax = applyPsychologicalRoundingUp(rangeMaxRaw, rounding);
+
+  const taxBreakdownAtTarget = calculateTikTokShopTaxBreakdown(
+    rangeMin,
+    tikTokShop.commissionPercent,
+    tikTokShop.fixedFeePerItem,
+    tikTokShop.fixedFeeThreshold,
+    tikTokShop.promoZeroCommission,
+    itemQuantity
+  );
+  const profitAtTarget = calculateProfit(rangeMin, cogs, taxBreakdownAtTarget.total);
+  const actualMarginAtTarget = calculateMargin(rangeMin, profitAtTarget);
+
+  const taxesAtRangeMax = calculateTaxes(rangeMax);
+  const profitAtRangeMax = calculateProfit(rangeMax, cogs, taxesAtRangeMax);
+
+  return {
+    platformName: 'TikTok Shop',
+    breakEvenPrice,
+    targetPrice,
+    rangeMin,
+    rangeMax,
+    profitAtTarget,
+    profitAtRangeMax,
+    actualMarginAtTarget,
+    taxesAtTarget: taxBreakdownAtTarget.total,
+    taxesAtRangeMax,
+    taxBreakdownAtTarget,
   };
 }
 
@@ -500,10 +674,12 @@ export function calculateAllResults(settings: AllSettings): CalculationResult {
   const costs = calculateCostBreakdown(settings);
   const shopee = calculateShopeeResult(costs.cogs, settings);
   const mercadoLivre = calculateMercadoLivreResult(costs.cogs, settings);
-  
+  const tikTokShop = calculateTikTokShopResult(costs.cogs, settings);
+
   return {
     costs,
     shopee,
     mercadoLivre,
+    tikTokShop,
   };
 }
