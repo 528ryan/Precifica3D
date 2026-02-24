@@ -87,7 +87,28 @@ export function useSettings() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        return { ...defaultSettings, ...parsed };
+        // Merge profundo para garantir que chaves novas (ex: tikTokShop)
+        // não sejam perdidas ao carregar configurações salvas anteriormente.
+        return {
+          ...defaultSettings,
+          ...parsed,
+          platform: {
+            ...defaultSettings.platform,
+            ...(parsed.platform ?? {}),
+            shopee: {
+              ...defaultSettings.platform.shopee,
+              ...(parsed.platform?.shopee ?? {}),
+            },
+            mercadoLivre: {
+              ...defaultSettings.platform.mercadoLivre,
+              ...(parsed.platform?.mercadoLivre ?? {}),
+            },
+            tikTokShop: {
+              ...defaultSettings.platform.tikTokShop,
+              ...(parsed.platform?.tikTokShop ?? {}),
+            },
+          },
+        };
       }
     } catch (e) {
       console.error('Erro ao carregar configurações:', e);
